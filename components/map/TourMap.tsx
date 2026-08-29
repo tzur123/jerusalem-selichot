@@ -49,7 +49,7 @@ export function TourMap({
         if (cancelled || !mapRef.current) return;
 
         const center = stations[0] ?? { latitude: 31.7767, longitude: 35.2345 };
-        mapInstance.current = new google.maps.Map(mapRef.current, {
+        const map = new google.maps.Map(mapRef.current, {
           center: { lat: center.latitude, lng: center.longitude },
           zoom: 15,
           disableDefaultUI: true,
@@ -57,32 +57,43 @@ export function TourMap({
           gestureHandling: "greedy",
           styles: MAP_DARK_STYLE,
         });
+        mapInstance.current = map;
 
         markers.current = stations.map((station) => {
           const color = STATUS_COLOR[progressByStationId?.get(station.id) ?? "pending"];
           const marker = new google.maps.Marker({
             position: { lat: station.latitude, lng: station.longitude },
-            map: mapInstance.current!,
+            map,
             label: {
               text: String(station.orderIndex),
               color: "#001B33",
-              fontWeight: "bold",
+              fontWeight: "800",
+              fontSize: "13px",
             },
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
               fillColor: color,
               fillOpacity: 1,
               strokeColor: "#F7FBFF",
-              strokeWeight: 2,
-              scale: 16,
+              strokeWeight: 2.5,
+              scale: 17,
             },
             title: station.name,
+            optimized: false,
           });
           if (onSelectStation) {
             marker.addListener("click", () => onSelectStation(station));
           }
           return marker;
         });
+
+        // Frame the whole tour ("general map of all points") rather than
+        // centering on a single stop.
+        if (stations.length > 1) {
+          const bounds = new google.maps.LatLngBounds();
+          stations.forEach((s) => bounds.extend({ lat: s.latitude, lng: s.longitude }));
+          map.fitBounds(bounds, 56);
+        }
 
         setStatus("ready");
       })

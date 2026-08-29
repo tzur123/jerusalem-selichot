@@ -4,6 +4,8 @@ import { mugrabi, mugrabiStencil, asimon } from "./fonts";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { AppBackground } from "@/components/brand/AppBackground";
+import { FloatingControls } from "@/components/ui/FloatingControls";
+import { SoundProvider } from "@/lib/sound/SoundProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
@@ -43,10 +45,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${mugrabi.variable} ${mugrabiStencil.variable} ${asimon.variable} h-full`}
     >
       <body className="min-h-dvh-safe flex flex-col antialiased">
-        <AppBackground />
-        <OfflineBanner />
-        <ServiceWorkerRegister />
-        {children}
+        <SoundProvider>
+          <AppBackground />
+          <OfflineBanner />
+          <FloatingControls />
+          <ServiceWorkerRegister />
+          {children}
+        </SoundProvider>
       </body>
     </html>
   );

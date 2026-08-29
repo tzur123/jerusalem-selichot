@@ -7,6 +7,7 @@ import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Spinner } from "@/components/ui/Spinner";
+import { useSound } from "@/lib/sound/SoundProvider";
 
 type ScanStatus = "starting" | "scanning" | "camera-error" | "validating" | "invalid" | "success";
 
@@ -24,6 +25,7 @@ function extractToken(rawValue: string): string {
 
 export function Scanner({ initialError }: { initialError?: string }) {
   const router = useRouter();
+  const { playSuccess } = useSound();
   const [status, setStatus] = useState<ScanStatus>("starting");
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialError === "invalid" ? "קוד ה-QR אינו תקין או בוטל" : null
@@ -50,13 +52,14 @@ export function Scanner({ initialError }: { initialError?: string }) {
         }
         const data = await res.json();
         setStatus("success");
+        playSuccess();
         router.push(`/station/${data.station.slug}`);
       } catch {
         setErrorMessage("שגיאת רשת — נסו שוב");
         setStatus("invalid");
       }
     },
-    [router]
+    [router, playSuccess]
   );
 
   useEffect(() => {

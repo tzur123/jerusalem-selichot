@@ -1,8 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import type { Station } from "@/types/station";
 import { isLocatable } from "@/types/station";
 import type { StationProgress, TourSession } from "@/types/session";
@@ -11,6 +10,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { StationInfoSheet } from "@/components/map/StationInfoSheet";
 
 const TourMap = dynamic(() => import("@/components/map/TourMap").then((m) => m.TourMap), {
   ssr: false,
@@ -59,7 +59,14 @@ export function TourView({
   progress: StationProgress[];
   session: TourSession;
 }) {
-  const router = useRouter();
+  const [selected, setSelected] = useState<Station | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  function openStation(station: Station) {
+    setSelected(station);
+    setSheetOpen(true);
+  }
+
   const progressByStationId = useMemo(() => {
     const map = new Map<string, StationProgress>();
     for (const p of progress) map.set(p.stationId, p);
@@ -100,7 +107,10 @@ export function TourView({
       <TourMap
         stations={locatable}
         progressByStationId={statusMap}
-        onSelectStation={(s) => router.push(ctaHref(s, statusMap.get(s.id) ?? "pending"))}
+        onSelectStation={(s) => {
+          const full = stations.find((st) => st.id === s.id) ?? (s as Station);
+          openStation(full);
+        }}
         height={280}
       />
 
@@ -116,24 +126,33 @@ export function TourView({
           .map((station) => {
             const status = statusMap.get(station.id) ?? "pending";
             return (
-              <Card key={station.id} className="flex items-center gap-3 py-3">
-                <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-black"
-                  style={{
-                    background: status === "completed" ? "rgba(0,240,168,0.2)" : "rgba(255,255,255,0.08)",
-                    color: status === "completed" ? "#00F0A8" : "#F7FBFF",
-                  }}
-                >
-                  {status === "completed" ? "✓" : station.orderIndex}
-                </span>
-                <div className="flex-1">
-                  <CardTitle className="text-base">{station.name}</CardTitle>
-                  <CardSubtitle className="text-xs">{STATUS_LABEL[status]}</CardSubtitle>
-                </div>
-              </Card>
+              <button key={station.id} type="button" onClick={() => openStation(station)} className="text-right">
+                <Card className="flex items-center gap-3 py-3 hover:border-gold/50 transition-colors">
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-stencil text-lg"
+                    style={{
+                      background: status === "completed" ? "rgba(0,240,168,0.2)" : "rgba(216,181,122,0.16)",
+                      color: status === "completed" ? "#00F0A8" : "#D8B57A",
+                    }}
+                  >
+                    {status === "completed" ? "✓" : station.orderIndex}
+                  </span>
+                  <div className="flex-1">
+                    <CardTitle className="text-base">{station.name}</CardTitle>
+                    <CardSubtitle className="text-xs">{STATUS_LABEL[status]}</CardSubtitle>
+                  </div>
+                </Card>
+              </button>
             );
           })}
       </div>
+
+      <StationInfoSheet
+        station={selected}
+        status={selected ? statusMap.get(selected.id) ?? "pending" : undefined}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+      />
     </div>
   );
 }

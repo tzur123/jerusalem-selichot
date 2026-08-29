@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { getPublishedStations } from "@/lib/data/stations";
 import { getSessionProgress } from "@/lib/session/progress";
 import { ShareButton } from "@/components/complete/ShareButton";
+import { SuccessChime } from "@/components/complete/SuccessChime";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 
 export const metadata = { title: "סיימתם את הסיור!" };
@@ -17,6 +18,7 @@ export default async function CompletePage() {
   return (
     <Screen className="justify-between gap-8">
       <TrackOnMount name="tour_completed" />
+      <SuccessChime />
 
       <div className="text-center pt-6">
         <span className="text-6xl" aria-hidden>

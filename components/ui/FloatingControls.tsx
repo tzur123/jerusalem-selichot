@@ -1,0 +1,82 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSound } from "@/lib/sound/SoundProvider";
+import { cn } from "@/lib/utils/cn";
+
+function MapIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 3 3.6 5.1a1 1 0 0 0-.6.93V19.5a.5.5 0 0 0 .7.46L9 18l6 3 5.4-2.1a1 1 0 0 0 .6-.93V4.5a.5.5 0 0 0-.7-.46L15 6 9 3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M9 3v15M15 6v15" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SoundOnIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 9v6h4l5 4V5L8 9H4Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7M18.8 6a8 8 0 0 1 0 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SoundOffIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 9v6h4l5 4V5L8 9H4Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="m16 9 5 6M21 9l-5 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const buttonClass =
+  "flex h-11 w-11 items-center justify-center rounded-full glass-card text-white/90 hover:text-mint transition-colors";
+
+export function FloatingControls() {
+  const pathname = usePathname();
+  const { muted, toggleMute } = useSound();
+
+  // The admin panel has its own chrome; keep it clean.
+  if (pathname.startsWith("/admin")) return null;
+
+  // On the immersive navigation screen we already have dedicated controls.
+  const hideMap = pathname === "/tour" || pathname.startsWith("/navigate");
+
+  return (
+    <div className="fixed top-0 left-0 z-40 flex items-center gap-2 p-3 safe-top">
+      {!hideMap && (
+        <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
+          <MapIcon />
+        </Link>
+      )}
+      <button
+        type="button"
+        onClick={toggleMute}
+        aria-label={muted ? "הפעלת צלילים" : "השתקת צלילים"}
+        aria-pressed={muted}
+        title={muted ? "הפעלת צלילים" : "השתקה"}
+        className={cn(buttonClass, muted && "text-muted")}
+      >
+        {muted ? <SoundOffIcon /> : <SoundOnIcon />}
+      </button>
+    </div>
+  );
+}
