@@ -1,18 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// `navigator.onLine` and the `online`/`offline` events are notoriously
+// unreliable (they can report `false` even with a working connection, and
+// browsers don't always fire `online` again on reconnect). To avoid a
+// persistent false-positive banner, we treat those signals only as a hint
+// and confirm real connectivity with a lightweight same-origin request
+// before showing/hiding the banner, retrying periodically while "offline".
+async function isActuallyOnline(): Promise<boolean> {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return false;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    await fetch("/manifest.webmanifest", { method: "HEAD", cache: "no-store", signal: controller.signal });
+    clearTimeout(timeout);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function OfflineBanner() {
-  const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
+  const [offline, setOffline] = useState(false);
+  const checkingRef = useRef(false);
 
   useEffect(() => {
-    const goOffline = () => setOffline(true);
-    const goOnline = () => setOffline(false);
-    window.addEventListener("offline", goOffline);
-    window.addEventListener("online", goOnline);
+    let cancelled = false;
+
+    async function runCheck() {
+      if (checkingRef.current) return;
+      checkingRef.current = true;
+      const online = await isActuallyOnline();
+      checkingRef.current = false;
+      if (!cancelled) setOffline(!online);
+    }
+
+    window.addEventListener("offline", runCheck);
+    window.addEventListener("online", runCheck);
+
+    // Initial check, deferred slightly so we don't flag a page still
+    // finishing its own network setup as "offline". Then poll periodically
+    // so we recover even if the browser never fires an `online` event.
+    const initialTimer = setTimeout(runCheck, 300);
+    const pollTimer = setInterval(runCheck, 15_000);
+
     return () => {
-      window.removeEventListener("offline", goOffline);
-      window.removeEventListener("online", goOnline);
+      cancelled = true;
+      clearTimeout(initialTimer);
+      clearInterval(pollTimer);
+      window.removeEventListener("offline", runCheck);
+      window.removeEventListener("online", runCheck);
     };
   }, []);
 
