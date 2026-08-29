@@ -40,13 +40,18 @@ CURSOR.md §18, error/edge states).
 
 1. **Supabase**
    - Create a project, then run the SQL in `supabase/migrations/0001_init.sql`
+     and `supabase/migrations/0002_qr_image_and_upload_limits.sql` in order
      (SQL Editor or `supabase db push` if you use the Supabase CLI).
    - Optionally run `supabase/seed.sql` to seed בית הרב קוק (stations 2–5 are
      intentionally left blank/unpublished — see "Remaining product decisions"
      below).
    - Create a Storage bucket named `station-videos` (the migration does this
      for you) and upload station videos/posters/captions, or use the
-     admin panel's upload form.
+     admin panel's upload form (direct-to-storage upload, up to 300MB for
+     video). **Note:** Supabase's Free plan hard-caps every upload at 50MB
+     regardless of bucket settings — 300MB video uploads require the Pro
+     plan or higher, plus setting "Global file size limit" in
+     Settings → Storage to at least 300MB.
    - Create an admin user (Authentication → Users) — any authenticated user
      can manage content; there is no public sign-up.
    - Copy the project URL / anon key / service role key into `.env.local`.
