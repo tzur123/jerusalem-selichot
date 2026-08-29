@@ -16,7 +16,7 @@ export default function LandingPage() {
     <Screen className="justify-between gap-10">
       <TrackOnMount name="landing_viewed" />
 
-      <header className="flex justify-between items-center pt-2">
+      <header className="flex justify-center items-center pt-2">
         <Logo />
       </header>
 

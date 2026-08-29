@@ -15,7 +15,7 @@ export function Screen({
     <main
       className={cn(
         "flex-1 min-h-dvh-safe safe-top safe-bottom safe-x flex flex-col",
-        contain && "px-4 py-6 max-w-lg mx-auto w-full",
+        contain && "px-6 py-8 max-w-lg mx-auto w-full",
         className
       )}
     >

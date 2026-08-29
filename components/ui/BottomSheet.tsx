@@ -47,7 +47,7 @@ export function BottomSheet({
       >
         <div
           className={cn(
-            "relative mx-auto max-w-lg rounded-t-3xl glass-panel safe-bottom px-5 pt-4 pb-6",
+            "relative mx-auto max-w-lg rounded-t-3xl glass-panel safe-bottom px-6 pt-4 pb-8",
             className
           )}
         >

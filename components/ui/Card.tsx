@@ -7,7 +7,7 @@ export function Card({
   ...rest
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
-    <div className={cn("glass-card rounded-3xl p-5", className)} {...rest}>
+    <div className={cn("glass-card rounded-3xl p-6", className)} {...rest}>
       {children}
     </div>
   );

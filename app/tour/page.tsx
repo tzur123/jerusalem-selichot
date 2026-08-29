@@ -23,7 +23,7 @@ export default async function TourPage() {
   }
 
   return (
-    <Screen contain={false} className="px-4 py-6 max-w-lg mx-auto w-full">
+    <Screen contain={false} className="px-6 py-8 max-w-lg mx-auto w-full">
       <TourView stations={stations} progress={sessionData.progress} session={sessionData.session} />
     </Screen>
   );
