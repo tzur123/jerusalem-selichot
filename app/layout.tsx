@@ -1,14 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Heebo } from "next/font/google";
 import "./globals.css";
+import { mugrabi, mugrabiStencil, asimon } from "./fonts";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
-
-const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
-  variable: "--font-heebo",
-  display: "swap",
-});
+import { AppBackground } from "@/components/brand/AppBackground";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
@@ -42,8 +37,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} h-full`}>
+    <html
+      lang="he"
+      dir="rtl"
+      className={`${mugrabi.variable} ${mugrabiStencil.variable} ${asimon.variable} h-full`}
+    >
       <body className="min-h-dvh-safe flex flex-col antialiased">
+        <AppBackground />
         <OfflineBanner />
         <ServiceWorkerRegister />
         {children}

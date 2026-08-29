@@ -27,25 +27,35 @@ export function BottomSheet({
   }, [open, onClose]);
 
   return (
-    <div
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-out",
-        open ? "translate-y-0" : "translate-y-full pointer-events-none"
-      )}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-    >
+    <>
       <div
         className={cn(
-          "mx-auto max-w-lg rounded-t-3xl glass-card border-b-0 safe-bottom px-5 pt-4 pb-6 shadow-2xl",
-          className
+          "fixed inset-0 z-40 glass-scrim transition-opacity duration-300 ease-out",
+          open ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
+        aria-hidden
+        onClick={onClose}
+      />
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-out",
+          open ? "translate-y-0" : "translate-y-full pointer-events-none"
+        )}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
       >
-        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" aria-hidden />
-        {title && <h2 className="text-xl font-bold mb-2">{title}</h2>}
-        {children}
+        <div
+          className={cn(
+            "relative mx-auto max-w-lg rounded-t-3xl glass-panel safe-bottom px-5 pt-4 pb-6",
+            className
+          )}
+        >
+          <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-gold/30" aria-hidden />
+          {title && <h2 className="text-xl font-bold mb-2 font-heading">{title}</h2>}
+          {children}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

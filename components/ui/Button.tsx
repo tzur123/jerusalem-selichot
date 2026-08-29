@@ -6,14 +6,16 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-all duration-150 min-h-12 px-5 select-none disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
+  "relative inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-all duration-200 min-h-12 px-5 select-none disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97]";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-mint text-navy hover:brightness-105 mint-glow",
+  primary:
+    "bg-gradient-to-b from-mint to-[#00d494] text-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] hover:brightness-105 mint-glow",
   secondary:
-    "bg-transparent text-white border border-mint/50 hover:border-mint hover:bg-mint/10",
-  ghost: "bg-transparent text-white/80 hover:text-white hover:bg-white/5",
-  danger: "bg-transparent text-red-300 border border-red-400/40 hover:bg-red-500/10",
+    "glass-button bg-white/[0.06] text-white border border-gold/40 hover:border-gold hover:bg-gold/10",
+  ghost: "glass-button bg-transparent text-white/80 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-white/10",
+  danger:
+    "glass-button bg-red-500/10 text-red-300 border border-red-400/40 hover:bg-red-500/15 hover:border-red-400/70",
 };
 
 const sizes: Record<Size, string> = {

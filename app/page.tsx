@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Screen } from "@/components/brand/Screen";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button";
@@ -20,13 +21,28 @@ export default function LandingPage() {
         <Logo />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-5">
-        <span className="text-mint font-bold tracking-wide text-sm">סיור סליחות דיגיטלי</span>
-        <h1 className="text-4xl font-black leading-tight text-white">
+      <section className="flex flex-col items-center text-center gap-6">
+        <div className="relative w-full max-w-[280px] aspect-[4/5] rounded-[2rem] overflow-hidden glass-card">
+          <Image
+            src="/backgrounds/bg-alley-1.png"
+            alt="סמטה עתיקה בירושלים לאור הירח"
+            fill
+            priority
+            sizes="280px"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />
+        </div>
+
+        <span className="text-gold font-semibold tracking-[0.2em] text-xs uppercase">
+          סיור סליחות דיגיטלי
+        </span>
+        <h1 className="text-4xl font-heading font-bold leading-tight text-white">
           5 תחנות. סיפור אחד.
           <br />
-          <span className="text-mint">ירושלים בלילה.</span>
+          <span className="text-gradient-gold">ירושלים בלילה.</span>
         </h1>
+        <div className="gold-divider w-24" />
         <p className="text-muted text-base max-w-sm">
           סיור סליחות עצמאי בין חמש נקודות ציון בירושלים — בקצב שלכם, עם ניווט, QR וסרטונים
           שנפתחים בכל תחנה.
@@ -45,7 +61,7 @@ export default function LandingPage() {
           <div className="mt-4 grid gap-3">
             {STEPS.map((step, i) => (
               <Card key={step.title} className="flex items-start gap-3 py-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mint/15 text-mint font-black">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold font-stencil ring-1 ring-gold/30">
                   {i + 1}
                 </span>
                 <div>

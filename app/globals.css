@@ -6,6 +6,8 @@
   --color-mint: #00f0a8;
   --color-white: #f7fbff;
   --color-stone: #d8b57a;
+  --color-gold: #e8c887;
+  --color-gold-dim: #a5854a;
   --color-muted: #93a6b5;
 
   --background: var(--color-navy);
@@ -23,10 +25,16 @@
   --color-mint: var(--color-mint);
   --color-white: var(--color-white);
   --color-stone: var(--color-stone);
+  --color-gold: var(--color-gold);
+  --color-gold-dim: var(--color-gold-dim);
   --color-muted: var(--color-muted);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-heebo);
+  /* Asimon is the workhorse face: body copy, buttons, forms, nav. */
+  --font-sans: var(--font-asimon);
+  /* Mugrabi is reserved for large headlines only. */
+  --font-heading: var(--font-mugrabi);
+  --font-stencil: var(--font-mugrabi-stencil);
 }
 
 @layer base {
@@ -42,14 +50,16 @@
 
   body {
     min-height: 100dvh;
-    background: radial-gradient(
-        120% 160% at 50% -10%,
-        rgba(0, 240, 168, 0.14),
-        transparent 55%
-      ),
-      linear-gradient(180deg, var(--color-navy) 0%, #001428 100%);
+    background: transparent;
     color: var(--color-white);
-    font-family: var(--font-heebo), "Segoe UI", Tahoma, sans-serif;
+    font-family: var(--font-sans), "Segoe UI", Tahoma, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading), var(--font-sans), sans-serif;
+    letter-spacing: 0.01em;
   }
 
   ::selection {
@@ -58,7 +68,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-mint);
+    outline: 2px solid var(--color-gold);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -78,13 +88,94 @@
   .min-h-dvh-safe {
     min-height: 100dvh;
   }
+
+  /* Core frosted-glass surface used by Card, forms, admin chrome, etc. */
   .glass-card {
-    background: rgba(0, 50, 90, 0.55);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(0, 240, 168, 0.18);
+    position: relative;
+    background: linear-gradient(165deg, rgba(0, 61, 105, 0.62), rgba(0, 27, 51, 0.72));
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(232, 200, 135, 0.16);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+      0 24px 48px -24px rgba(0, 0, 0, 0.65);
   }
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(232, 200, 135, 0.5),
+      rgba(232, 200, 135, 0) 30%,
+      rgba(232, 200, 135, 0) 70%,
+      rgba(0, 240, 168, 0.25)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+  }
+
+  /* Heavier blur for overlays that float above the whole screen: sheets, modals, popovers. */
+  .glass-panel {
+    background: linear-gradient(180deg, rgba(0, 43, 79, 0.82), rgba(0, 20, 40, 0.92));
+    backdrop-filter: blur(32px) saturate(160%);
+    -webkit-backdrop-filter: blur(32px) saturate(160%);
+    border-top: 1px solid rgba(232, 200, 135, 0.28);
+    box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Dimming + blur scrim placed behind modals/sheets so content underneath softens. */
+  .glass-scrim {
+    background: rgba(0, 10, 22, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  /* Frosted pill used for the primary/secondary buttons' glass finish. */
+  .glass-button {
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+
   .mint-glow {
     box-shadow: 0 0 0 1px rgba(0, 240, 168, 0.35), 0 8px 30px -10px rgba(0, 240, 168, 0.45);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 0 1px rgba(232, 200, 135, 0.45), 0 8px 30px -10px rgba(232, 200, 135, 0.55);
+  }
+
+  /* Thin gold hairline divider used to separate premium sections. */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-gold) 50%, transparent);
+    opacity: 0.6;
+  }
+
+  .text-gold {
+    color: var(--color-gold);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-stone) 50%, var(--color-gold) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .font-heading {
+    font-family: var(--font-heading), var(--font-sans), sans-serif;
+  }
+
+  .font-stencil {
+    font-family: var(--font-stencil), var(--font-heading), sans-serif;
   }
 }
 

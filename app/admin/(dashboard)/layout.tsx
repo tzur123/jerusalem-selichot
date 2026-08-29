@@ -16,10 +16,10 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between px-4 py-3">
           <Logo />
           <nav className="flex items-center gap-4 text-sm">
-            <Link href="/admin/stations" className="hover:text-mint">
+            <Link href="/admin/stations" className="hover:text-gold transition-colors">
               תחנות
             </Link>
-            <Link href="/admin/analytics" className="hover:text-mint">
+            <Link href="/admin/analytics" className="hover:text-gold transition-colors">
               אנליטיקס
             </Link>
             <span className="text-muted hidden sm:inline">{session.email}</span>
