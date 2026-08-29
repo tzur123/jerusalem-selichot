@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Screen } from "@/components/brand/Screen";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button";
@@ -22,21 +21,6 @@ export default function LandingPage() {
       </header>
 
       <section className="flex flex-col items-center text-center gap-6">
-        <div className="relative w-full max-w-[280px] aspect-[4/5] rounded-[2rem] overflow-hidden glass-card">
-          <Image
-            src="/backgrounds/bg-alley-1.png"
-            alt="סמטה עתיקה בירושלים לאור הירח"
-            fill
-            priority
-            sizes="280px"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />
-        </div>
-
-        <span className="text-gold font-semibold tracking-[0.2em] text-xs uppercase">
-          סיור סליחות דיגיטלי
-        </span>
         <h1 className="text-4xl font-heading font-bold leading-tight text-white">
           5 תחנות. סיפור אחד.
           <br />
