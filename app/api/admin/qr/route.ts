@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAdminSession } from "@/lib/admin/auth";
-import { generateQrForStation, revokeQr, buildQrUrl } from "@/lib/qr/service";
-import { env } from "@/lib/config/env";
+import { generateQrForStation, revokeQr } from "@/lib/qr/service";
 
 const generateSchema = z.object({ stationId: z.string().uuid() });
 const revokeSchema = z.object({ qrId: z.string().min(1) });
@@ -15,10 +14,9 @@ export async function POST(request: Request) {
   const parsed = generateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const token = await generateQrForStation(parsed.data.stationId);
-  const url = buildQrUrl(token, env.NEXT_PUBLIC_APP_URL);
+  const { token, url, qrImageUrl } = await generateQrForStation(parsed.data.stationId);
 
-  return NextResponse.json({ token, url });
+  return NextResponse.json({ token, url, qrImageUrl });
 }
 
 export async function PATCH(request: Request) {

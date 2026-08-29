@@ -30,6 +30,7 @@ export type QrCodeRow = {
   is_active: boolean;
   created_at: string;
   revoked_at: string | null;
+  qr_image_path: string | null;
 };
 
 export type TourSessionRow = {

@@ -1,4 +1,5 @@
 import "server-only";
+import QRCode from "qrcode";
 import { env } from "@/lib/config/env";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { mockStore } from "@/lib/data/mock-store";
@@ -6,13 +7,36 @@ import { getStationById } from "@/lib/data/stations";
 import { generateQrToken, hashQrToken } from "./token";
 import type { Station } from "@/types/station";
 
+const QR_IMAGE_TTL_SECONDS = 60 * 60; // 1 hour — regenerated on every admin page load
+
 export type QrStatus = {
   id: string;
   token: string | null; // only ever populated right after generation (mock) — real tokens are never re-readable
   isActive: boolean;
   createdAt: string;
   revokedAt: string | null;
+  /** Signed/persisted image of the printable QR code, when one was rendered. */
+  qrImageUrl: string | null;
 };
+
+export type GeneratedQr = {
+  token: string;
+  url: string;
+  qrImageUrl: string | null;
+};
+
+/** Builds the public deep-link URL for a raw token. */
+export function buildQrUrl(token: string, appUrl: string): string {
+  return `${appUrl.replace(/\/$/, "")}/q/${token}`;
+}
+
+async function renderQrPng(url: string): Promise<Buffer> {
+  return QRCode.toBuffer(url, {
+    margin: 1,
+    width: 512,
+    color: { dark: "#001B33", light: "#F7FBFF" },
+  });
+}
 
 /**
  * Validates a raw QR token from `/q/[token]` or the in-app scanner.
@@ -38,12 +62,23 @@ export async function validateQrToken(token: string): Promise<Station | null> {
   return getStationById(data.station_id);
 }
 
-/** Generates a new active QR token for a station. Returns the raw token (show once). */
-export async function generateQrForStation(stationId: string): Promise<string> {
+/**
+ * Generates a new active QR token for a station, renders and persists the
+ * printable QR image, and returns everything the admin UI needs to display
+ * or download it — including on future page loads, without regenerating
+ * (which would immediately invalidate any already-printed code).
+ */
+export async function generateQrForStation(stationId: string): Promise<GeneratedQr> {
   const token = generateQrToken();
+  const url = buildQrUrl(token, env.NEXT_PUBLIC_APP_URL);
 
   if (env.useMockBackend) {
     const id = crypto.randomUUID();
+    const qrImageDataUrl = await QRCode.toDataURL(url, {
+      margin: 1,
+      width: 512,
+      color: { dark: "#001B33", light: "#F7FBFF" },
+    });
     mockStore.qrCodes.set(token, {
       id,
       stationId,
@@ -51,19 +86,40 @@ export async function generateQrForStation(stationId: string): Promise<string> {
       isActive: true,
       createdAt: new Date().toISOString(),
       revokedAt: null,
+      qrImageDataUrl,
     });
-    return token;
+    return { token, url, qrImageUrl: qrImageDataUrl };
   }
 
   const hash = await hashQrToken(token, env.QR_HASH_PEPPER);
   const supabase = getSupabaseAdminClient();
-  const { error } = await supabase.from("qr_codes").insert({
-    station_id: stationId,
-    token_hash: hash,
-    is_active: true,
-  });
-  if (error) throw error;
-  return token;
+
+  const { data: inserted, error } = await supabase
+    .from("qr_codes")
+    .insert({ station_id: stationId, token_hash: hash, is_active: true })
+    .select("*")
+    .single();
+  if (error || !inserted) throw error ?? new Error("Failed to create QR code");
+
+  let qrImageUrl: string | null = null;
+  try {
+    const png = await renderQrPng(url);
+    const imagePath = `qr-codes/${stationId}/${inserted.id}.png`;
+    const { error: uploadError } = await supabase.storage
+      .from("station-videos")
+      .upload(imagePath, png, { contentType: "image/png", upsert: true });
+    if (!uploadError) {
+      await supabase.from("qr_codes").update({ qr_image_path: imagePath }).eq("id", inserted.id);
+      const { data: signed } = await supabase.storage
+        .from("station-videos")
+        .createSignedUrl(imagePath, QR_IMAGE_TTL_SECONDS);
+      qrImageUrl = signed?.signedUrl ?? null;
+    }
+  } catch {
+    // QR still works via `url` even if the persisted image render/upload failed.
+  }
+
+  return { token, url, qrImageUrl };
 }
 
 export async function revokeQr(qrId: string): Promise<void> {
@@ -96,6 +152,7 @@ export async function listQrForStation(stationId: string): Promise<QrStatus[]> {
         isActive: r.isActive,
         createdAt: r.createdAt,
         revokedAt: r.revokedAt,
+        qrImageUrl: r.isActive ? r.qrImageDataUrl : null,
       }));
   }
 
@@ -106,16 +163,25 @@ export async function listQrForStation(stationId: string): Promise<QrStatus[]> {
     .eq("station_id", stationId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    token: null,
-    isActive: r.is_active,
-    createdAt: r.created_at,
-    revokedAt: r.revoked_at,
-  }));
-}
 
-/** Builds the public deep-link URL for a raw token. */
-export function buildQrUrl(token: string, appUrl: string): string {
-  return `${appUrl.replace(/\/$/, "")}/q/${token}`;
+  const rows = data ?? [];
+  const results: QrStatus[] = [];
+  for (const r of rows) {
+    let qrImageUrl: string | null = null;
+    if (r.is_active && r.qr_image_path) {
+      const { data: signed } = await supabase.storage
+        .from("station-videos")
+        .createSignedUrl(r.qr_image_path, QR_IMAGE_TTL_SECONDS);
+      qrImageUrl = signed?.signedUrl ?? null;
+    }
+    results.push({
+      id: r.id,
+      token: null,
+      isActive: r.is_active,
+      createdAt: r.created_at,
+      revokedAt: r.revoked_at,
+      qrImageUrl,
+    });
+  }
+  return results;
 }

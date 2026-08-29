@@ -21,6 +21,7 @@ type MockQrCode = {
   isActive: boolean;
   createdAt: string;
   revokedAt: string | null;
+  qrImageDataUrl: string | null;
 };
 
 type MockAnalyticsEvent = {
@@ -55,6 +56,7 @@ function createInitialQrCodes(): Map<string, MockQrCode> {
       isActive: true,
       createdAt: new Date().toISOString(),
       revokedAt: null,
+      qrImageDataUrl: null,
     });
   }
   return map;

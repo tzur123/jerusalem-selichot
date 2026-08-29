@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import QRCode from "qrcode";
 import type { QrStatus } from "@/lib/qr/service";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -9,11 +8,13 @@ import { Spinner } from "@/components/ui/Spinner";
 
 export function QrManager({ stationId, initialCodes }: { stationId: string; initialCodes: QrStatus[] }) {
   const [codes, setCodes] = useState(initialCodes);
-  const [latest, setLatest] = useState<{ token: string; url: string; qrImage: string } | null>(null);
+  const [latestUrl, setLatestUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function generate() {
     setBusy(true);
+    setError(null);
     try {
       const res = await fetch("/api/admin/qr", {
         method: "POST",
@@ -21,15 +22,21 @@ export function QrManager({ stationId, initialCodes }: { stationId: string; init
         body: JSON.stringify({ stationId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      const qrImage = await QRCode.toDataURL(data.url, { margin: 1, width: 320, color: { dark: "#001B33", light: "#F7FBFF" } });
-      setLatest({ token: data.token, url: data.url, qrImage });
+      if (!res.ok) throw new Error(data.error ?? "יצירת הקוד נכשלה");
+      setLatestUrl(data.url);
       setCodes((prev) => [
-        { id: "temp", token: data.token, isActive: true, createdAt: new Date().toISOString(), revokedAt: null },
-        ...prev.map((c) => ({ ...c, token: null })),
+        {
+          id: "temp",
+          token: data.token,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          revokedAt: null,
+          qrImageUrl: data.qrImageUrl ?? null,
+        },
+        ...prev.map((c) => ({ ...c, isActive: false, token: null, qrImageUrl: null })),
       ]);
-    } catch {
-      // no-op, UI stays as-is
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "יצירת הקוד נכשלה");
     } finally {
       setBusy(false);
     }
@@ -37,14 +44,17 @@ export function QrManager({ stationId, initialCodes }: { stationId: string; init
 
   async function revoke(qrId: string) {
     setBusy(true);
+    setError(null);
     try {
       await fetch("/api/admin/qr", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qrId }),
       });
-      setCodes((prev) => prev.map((c) => (c.id === qrId ? { ...c, isActive: false, token: null } : c)));
-      if (latest) setLatest(null);
+      setCodes((prev) =>
+        prev.map((c) => (c.id === qrId ? { ...c, isActive: false, token: null, qrImageUrl: null } : c))
+      );
+      setLatestUrl(null);
     } finally {
       setBusy(false);
     }
@@ -56,22 +66,34 @@ export function QrManager({ stationId, initialCodes }: { stationId: string; init
     <Card className="flex flex-col gap-4">
       <CardTitle>קוד QR לתחנה</CardTitle>
       <CardSubtitle>
-        {activeCode ? "יש קוד פעיל. ניתן להנפיק קוד חדש (הישן יבוטל אוטומטית) או לבטל ידנית." : "אין עדיין קוד פעיל לתחנה זו."}
+        {activeCode
+          ? "הקוד הפעיל מוצג תמיד כאן — אין צורך להנפיק קוד חדש כדי לצפות בו שוב."
+          : "אין עדיין קוד פעיל לתחנה זו."}
       </CardSubtitle>
 
-      {latest && (
+      {activeCode?.qrImageUrl ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={latest.qrImage} alt="קוד QR להדפסה" width={200} height={200} />
-          <p className="text-navy text-xs break-all text-center">{latest.url}</p>
+          <img src={activeCode.qrImageUrl} alt="קוד QR להדפסה" width={200} height={200} />
+          {latestUrl && <p className="text-navy text-xs break-all text-center">{latestUrl}</p>}
           <a
-            href={latest.qrImage}
+            href={activeCode.qrImageUrl}
             download={`qr-${stationId}.png`}
             className="text-xs font-bold text-deep-blue underline"
           >
             הורדת PNG להדפסה
           </a>
         </div>
+      ) : activeCode ? (
+        <p className="text-xs text-muted rounded-2xl bg-white/5 p-4 text-center">
+          יש קוד פעיל אך תמונת ה-QR שלו אינה זמינה כרגע. ניתן להנפיק קוד חדש כדי לקבל תמונה להדפסה.
+        </p>
+      ) : null}
+
+      {error && (
+        <p role="alert" className="text-sm text-red-300">
+          {error}
+        </p>
       )}
 
       <div className="flex gap-3">

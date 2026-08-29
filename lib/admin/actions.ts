@@ -101,38 +101,48 @@ export async function reorderStationsAction(order: { id: string; orderIndex: num
   revalidatePath("/admin/stations");
 }
 
-export async function uploadStationMediaAction(
+const MEDIA_BUCKET = "station-videos";
+
+/**
+ * Mints a short-lived signed upload URL so the browser can stream large
+ * media files (up to 300MB for video) directly to Supabase Storage,
+ * bypassing our own server entirely — this avoids Vercel's serverless
+ * function request-body limits, which are far smaller than 300MB.
+ */
+export async function createMediaUploadUrlAction(
   stationId: string,
   kind: "video" | "poster" | "captions",
-  formData: FormData
-): Promise<{ error?: string; path?: string }> {
+  fileName: string
+): Promise<{ error?: string; path?: string; token?: string; signedUrl?: string }> {
   await requireAdmin();
 
   if (env.useMockBackend) {
     return { error: "העלאת קבצים דורשת חיבור ל-Supabase Storage. הזינו נתיב ידנית בשדה למטה." };
   }
 
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "לא נבחר קובץ" };
-  }
-
   const supabase = getSupabaseAdminClient();
-  const extension = file.name.split(".").pop() ?? "bin";
-  const path = `${stationId}/${kind}-${Date.now()}.${extension}`;
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${stationId}/${kind}-${Date.now()}-${safeName}`;
 
-  const { error } = await supabase.storage.from("station-videos").upload(path, file, {
-    upsert: true,
-    contentType: file.type || undefined,
-  });
-
-  if (error) {
-    return { error: `העלאה נכשלה: ${error.message}` };
+  const { data, error } = await supabase.storage.from(MEDIA_BUCKET).createSignedUploadUrl(path);
+  if (error || !data) {
+    return { error: `יצירת קישור העלאה נכשלה: ${error?.message ?? "שגיאה לא ידועה"}` };
   }
+
+  return { path: data.path, token: data.token, signedUrl: data.signedUrl };
+}
+
+/** Persists the storage path on the station once the browser finished the direct upload. */
+export async function finalizeMediaUploadAction(
+  stationId: string,
+  kind: "video" | "poster" | "captions",
+  path: string
+): Promise<{ error?: string }> {
+  await requireAdmin();
 
   const field = kind === "video" ? "videoPath" : kind === "poster" ? "posterPath" : "captionsPath";
   await updateStation(stationId, { [field]: path });
   revalidatePath(`/admin/stations/${stationId}`);
 
-  return { path };
+  return {};
 }
