@@ -81,9 +81,13 @@
   .safe-bottom {
     padding-bottom: var(--safe-bottom);
   }
+  /* Always keep a comfortable side gutter (1.5rem), and grow it further on
+     notched devices so content never sits flush against the screen edge.
+     Uses max() because this utility shares padding-left/right with Tailwind's
+     px-* utilities and would otherwise zero them out where insets are 0. */
   .safe-x {
-    padding-left: var(--safe-left);
-    padding-right: var(--safe-right);
+    padding-left: max(1.5rem, var(--safe-left));
+    padding-right: max(1.5rem, var(--safe-right));
   }
   .min-h-dvh-safe {
     min-height: 100dvh;
