@@ -8,6 +8,8 @@ const BACKGROUNDS = {
   moonlit: "/backgrounds/bg-alley-4.png",
   /** Illuminated old-city gate at night, lens-flare glow — used for the landing hero. */
   gate: "/backgrounds/bg-gate-hero.png",
+  /** The Tower of David citadel lit up at night — used for the start-flow screen. */
+  citadel: "/backgrounds/bg-citadel-hero.png",
   /** Grand torch-lit bridge and tower — used for the active navigation flow. */
   bridge: "/backgrounds/bg-alley-2.png",
   /** Framed archway looking deep into the old city — used for arrival moments. */
@@ -32,7 +34,8 @@ export function AppBackground({
 }) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
-  const resolvedVariant = variant ?? (isLanding ? "gate" : "moonlit");
+  const resolvedVariant =
+    variant ?? (isLanding ? "gate" : pathname === "/start" ? "citadel" : "moonlit");
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy" aria-hidden>
