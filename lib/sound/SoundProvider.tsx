@@ -20,6 +20,7 @@ type SoundContextValue = {
 const SoundContext = createContext<SoundContextValue | null>(null);
 
 const STORAGE_KEY = "jslichot-muted";
+const CLICK_SOUND_URL = "/sounds/click.wav";
 
 export function SoundProvider({ children }: { children: ReactNode }) {
   const [muted, setMuted] = useState(false);
@@ -27,6 +28,8 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   const ctxRef = useRef<AudioContext | null>(null);
   const sfxGainRef = useRef<GainNode | null>(null);
+  const clickBufferRef = useRef<AudioBuffer | null>(null);
+  const clickBufferLoadingRef = useRef(false);
 
   const ensureContext = useCallback(() => {
     if (typeof window === "undefined") return null;
@@ -44,15 +47,30 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       sfxGainRef.current = sfx;
     }
     if (ctxRef.current.state === "suspended") void ctxRef.current.resume();
+
+    if (!clickBufferRef.current && !clickBufferLoadingRef.current) {
+      clickBufferLoadingRef.current = true;
+      const ctx = ctxRef.current;
+      fetch(CLICK_SOUND_URL)
+        .then((res) => res.arrayBuffer())
+        .then((data) => ctx.decodeAudioData(data))
+        .then((buffer) => {
+          clickBufferRef.current = buffer;
+        })
+        .catch(() => {
+          // Fall back silently to the synthesized click below.
+        })
+        .finally(() => {
+          clickBufferLoadingRef.current = false;
+        });
+    }
+
     return ctxRef.current;
   }, []);
 
-  // A soft, playful two-tone "bubble pop" — friendlier than a sharp UI click.
-  const playClick = useCallback(() => {
-    if (mutedRef.current) return;
-    const ctx = ensureContext();
-    const out = sfxGainRef.current;
-    if (!ctx || !out) return;
+  // Synthesized fallback: a soft two-tone "bubble pop" used only until the
+  // real click sample has finished loading (or if it fails to load).
+  const playSynthClick = useCallback((ctx: AudioContext, out: GainNode) => {
     const now = ctx.currentTime;
 
     const osc = ctx.createOscillator();
@@ -78,7 +96,29 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     sparkle.connect(gs).connect(out);
     sparkle.start(now);
     sparkle.stop(now + 0.1);
-  }, [ensureContext]);
+  }, []);
+
+  const playClick = useCallback(() => {
+    if (mutedRef.current) return;
+    const ctx = ensureContext();
+    const out = sfxGainRef.current;
+    if (!ctx || !out) return;
+
+    if (clickBufferRef.current) {
+      // The sample is mixed on its own gain (not the shared `out` bus used
+      // by the synthesized fallback/success chime) so its volume can be
+      // tuned independently of those tones.
+      const source = ctx.createBufferSource();
+      source.buffer = clickBufferRef.current;
+      const clickGain = ctx.createGain();
+      clickGain.gain.value = 0.8;
+      source.connect(clickGain).connect(ctx.destination);
+      source.start();
+      return;
+    }
+
+    playSynthClick(ctx, out);
+  }, [ensureContext, playSynthClick]);
 
   const playSuccess = useCallback(() => {
     if (mutedRef.current) return;
