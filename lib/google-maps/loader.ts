@@ -27,6 +27,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
       importLibrary("geometry"),
       importLibrary("places"),
       importLibrary("routes"),
+      importLibrary("geocoding"),
     ]).then(() => window.google);
   }
 

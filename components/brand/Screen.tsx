@@ -16,7 +16,7 @@ export function Screen({
       className={cn(
         "flex-1 min-h-dvh-safe safe-x flex flex-col",
         contain &&
-          "px-6 pt-[max(2rem,var(--safe-top))] pb-[max(2rem,var(--safe-bottom))] max-w-lg mx-auto w-full",
+          "px-6 pt-[max(2.75rem,var(--safe-top))] pb-[max(2rem,var(--safe-bottom))] max-w-lg mx-auto w-full",
         className
       )}
     >

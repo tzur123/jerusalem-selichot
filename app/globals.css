@@ -156,6 +156,25 @@
     box-shadow: 0 0 0 1px rgba(0, 240, 168, 0.35), 0 8px 30px -10px rgba(0, 240, 168, 0.45);
   }
 
+  /* Ongoing "tap me" cue for a primary call-to-action: a soft ring expands
+     outward and fades, on top of the button's own glow, in a slow loop. */
+  @keyframes pulse-cta {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 0 rgba(0, 240, 168, 0.55),
+        0 8px 30px -10px rgba(0, 240, 168, 0.5);
+    }
+    50% {
+      box-shadow:
+        0 0 0 12px rgba(0, 240, 168, 0),
+        0 8px 30px -10px rgba(0, 240, 168, 0.7);
+    }
+  }
+  .pulse-cta {
+    animation: pulse-cta 2.6s ease-in-out infinite;
+  }
+
   .gold-glow {
     box-shadow: 0 0 0 1px rgba(232, 200, 135, 0.45), 0 8px 30px -10px rgba(232, 200, 135, 0.55);
   }

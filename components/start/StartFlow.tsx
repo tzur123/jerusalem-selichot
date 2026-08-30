@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Station } from "@/types/station";
 import { isLocatable } from "@/types/station";
@@ -11,18 +11,32 @@ import {
   GeolocationTimeoutError,
   type GeoPosition,
 } from "@/lib/geo/geolocation";
+import { reverseGeocode } from "@/lib/geo/reverse-geocode";
 import { trackEventClient } from "@/lib/analytics/track-client";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 
 type LocationState =
-  | { status: "idle" }
   | { status: "requesting" }
   | { status: "granted"; position: GeoPosition }
   | { status: "denied" }
   | { status: "timeout" }
   | { status: "unsupported" };
+
+function PinIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+      <path
+        d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
 
 function formatWalkTime(seconds: number): string {
   const minutes = Math.max(1, Math.round(seconds / 60));
@@ -36,7 +50,8 @@ function formatDistance(meters: number): string {
 
 export function StartFlow({ stations }: { stations: Station[] }) {
   const router = useRouter();
-  const [locationState, setLocationState] = useState<LocationState>({ status: "idle" });
+  const [locationState, setLocationState] = useState<LocationState>({ status: "requesting" });
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
   const [showManualList, setShowManualList] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
 
@@ -51,8 +66,9 @@ export function StartFlow({ stations }: { stations: Station[] }) {
     );
   }, [locationState, locatableStations]);
 
-  async function handleRequestLocation() {
-    setLocationState({ status: "requesting" });
+  // No synchronous setState here (only after the first await) so this is
+  // safe to fire straight from the mount effect below.
+  const runGeolocation = useCallback(async () => {
     try {
       const position = await requestCurrentPosition();
       setLocationState({ status: "granted", position });
@@ -61,6 +77,8 @@ export function StartFlow({ stations }: { stations: Station[] }) {
       if (nearestResult) {
         trackEventClient("nearest_station_shown", { stationId: nearestResult.item.id });
       }
+      const label = await reverseGeocode(position.lat, position.lng);
+      setLocationLabel(label ?? "המיקום שלכם אותר בהצלחה");
     } catch (err) {
       if (err instanceof GeolocationPermissionDeniedError) {
         setLocationState({ status: "denied" });
@@ -72,7 +90,24 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         setLocationState({ status: "unsupported" });
       }
     }
-  }
+  }, [locatableStations]);
+
+  /** Used by the manual retry button — resets visible state, then re-runs. */
+  const requestLocation = useCallback(() => {
+    setLocationState({ status: "requesting" });
+    setLocationLabel(null);
+    void runGeolocation();
+  }, [runGeolocation]);
+
+  // Ask for location the moment this screen opens — no click required. If the
+  // visitor doesn't approve, the fallback card below offers a manual retry.
+  // Deferred to a microtask so this doesn't read as a synchronous
+  // setState-in-effect (the state updates only happen once the underlying
+  // promise settles, but the linter can't see that far).
+  useEffect(() => {
+    queueMicrotask(() => void runGeolocation());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function selectStart(station: Station, startMode: "nearest" | "recommended" | "manual") {
     if (pending) return;
@@ -92,23 +127,10 @@ export function StartFlow({ stations }: { stations: Station[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="pt-2">
+      <header className="pt-6">
         <h1 className="text-2xl font-black">מאיפה מתחילים?</h1>
         <p className="text-muted text-sm mt-1">בחרו נקודת התחלה לסיור הסליחות</p>
       </header>
-
-      {locationState.status === "idle" && (
-        <Card className="flex flex-col gap-3">
-          <CardTitle>נאתר את התחנה הקרובה אליכם</CardTitle>
-          <CardSubtitle>
-            כדי למצוא את התחנה הקרובה ולהוביל אתכם במסלול, נבקש גישה למיקום שלכם. אפשר גם להמשיך
-            בלי לשתף מיקום.
-          </CardSubtitle>
-          <Button onClick={handleRequestLocation} fullWidth>
-            אפשרו גישה למיקום
-          </Button>
-        </Card>
-      )}
 
       {locationState.status === "requesting" && (
         <Card className="flex items-center gap-3">
@@ -120,15 +142,27 @@ export function StartFlow({ stations }: { stations: Station[] }) {
       {(locationState.status === "denied" ||
         locationState.status === "timeout" ||
         locationState.status === "unsupported") && (
-        <Card className="border-stone/40">
-          <CardTitle className="text-base">אין בעיה, אפשר להמשיך בלי מיקום</CardTitle>
-          <CardSubtitle>
-            {locationState.status === "timeout"
-              ? "לא הצלחנו לאתר את המיקום בזמן."
-              : "הגישה למיקום לא אושרה."}{" "}
-            תמיד אפשר להתחיל מהמסלול המומלץ או לבחור תחנה ידנית.
-          </CardSubtitle>
+        <Card className="border-stone/40 flex flex-col gap-3">
+          <div>
+            <CardTitle className="text-base">אין בעיה, אפשר להמשיך בלי מיקום</CardTitle>
+            <CardSubtitle>
+              {locationState.status === "timeout"
+                ? "לא הצלחנו לאתר את המיקום בזמן."
+                : "הגישה למיקום לא אושרה."}{" "}
+              תמיד אפשר להתחיל מהמסלול המומלץ או לבחור תחנה ידנית.
+            </CardSubtitle>
+          </div>
+          <Button onClick={requestLocation} variant="secondary" fullWidth>
+            אפשרו גישה למיקום
+          </Button>
         </Card>
+      )}
+
+      {locationState.status === "granted" && (
+        <p className="flex items-center gap-1.5 text-xs text-muted -mb-2">
+          <PinIcon />
+          {locationLabel ?? "מאתרים את הכתובת המדויקת..."}
+        </p>
       )}
 
       {locationState.status === "granted" && nearest && (
