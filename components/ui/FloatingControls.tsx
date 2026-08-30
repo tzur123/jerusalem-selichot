@@ -5,6 +5,15 @@ import { usePathname } from "next/navigation";
 import { useSound } from "@/lib/sound/SoundProvider";
 import { cn } from "@/lib/utils/cn";
 
+function BackIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      {/* Points right: in RTL, "back" (the previous step) reads as forward-right. */}
+      <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function MapIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -50,6 +59,19 @@ function SoundOffIcon() {
 const buttonClass =
   "flex h-11 w-11 items-center justify-center rounded-full glass-card text-white/90 hover:text-mint transition-colors";
 
+/** Where the global back button should lead from a given route. `null` hides it (nothing to go back to). */
+function getBackHref(pathname: string): string | null {
+  if (pathname === "/") return null;
+  if (pathname === "/start") return "/";
+  if (pathname === "/tour") return "/start";
+  if (pathname === "/scan") return "/tour";
+  if (pathname === "/complete") return "/tour";
+  if (pathname.startsWith("/station/")) return "/tour";
+  if (pathname.startsWith("/navigate/")) return "/tour";
+  if (pathname === "/offline") return "/";
+  return "/";
+}
+
 export function FloatingControls() {
   const pathname = usePathname();
   const { muted, toggleMute } = useSound();
@@ -59,24 +81,34 @@ export function FloatingControls() {
 
   // On the immersive navigation screen we already have dedicated controls.
   const hideMap = pathname === "/tour" || pathname.startsWith("/navigate");
+  const backHref = getBackHref(pathname);
 
   return (
-    <div className="fixed top-0 left-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(1.5rem,var(--safe-top))]">
-      {!hideMap && (
-        <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
-          <MapIcon />
-        </Link>
+    <>
+      {backHref && (
+        <div className="fixed top-0 right-0 z-40 flex items-center px-3 pb-3 pt-[max(1.5rem,var(--safe-top))]">
+          <Link href={backHref} aria-label="חזרה" title="חזרה" className={buttonClass}>
+            <BackIcon />
+          </Link>
+        </div>
       )}
-      <button
-        type="button"
-        onClick={toggleMute}
-        aria-label={muted ? "הפעלת צלילים" : "השתקת צלילים"}
-        aria-pressed={muted}
-        title={muted ? "הפעלת צלילים" : "השתקה"}
-        className={cn(buttonClass, muted && "text-muted")}
-      >
-        {muted ? <SoundOffIcon /> : <SoundOnIcon />}
-      </button>
-    </div>
+      <div className="fixed top-0 left-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(1.5rem,var(--safe-top))]">
+        {!hideMap && (
+          <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
+            <MapIcon />
+          </Link>
+        )}
+        <button
+          type="button"
+          onClick={toggleMute}
+          aria-label={muted ? "הפעלת צלילים" : "השתקת צלילים"}
+          aria-pressed={muted}
+          title={muted ? "הפעלת צלילים" : "השתקה"}
+          className={cn(buttonClass, muted && "text-muted")}
+        >
+          {muted ? <SoundOffIcon /> : <SoundOnIcon />}
+        </button>
+      </div>
+    </>
   );
 }
