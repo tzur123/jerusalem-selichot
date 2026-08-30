@@ -2,7 +2,11 @@ import { Screen } from "@/components/brand/Screen";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
-export const metadata = { title: "הצהרת נגישות" };
+export const metadata = {
+  title: "הצהרת נגישות",
+  description: "הצהרת הנגישות של אתר סיור סליחות ירושלים — התאמות הנגישות הקיימות באתר ופרטי יצירת קשר.",
+  alternates: { canonical: "/accessibility" },
+};
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

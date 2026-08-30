@@ -8,7 +8,7 @@ import { StationVideoPlayer } from "@/components/video/StationVideoPlayer";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const station = await getStationBySlug(slug);
-  return { title: station?.name ?? "תחנה" };
+  return { title: station?.name ?? "תחנה", robots: { index: false } };
 }
 
 export default async function StationPage({ params }: { params: Promise<{ slug: string }> }) {

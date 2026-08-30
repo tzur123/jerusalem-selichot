@@ -3,6 +3,9 @@ import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { HowItWorks } from "@/components/landing/HowItWorks";
+import { getPublishedStations } from "@/lib/data/stations";
+
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 function ArrowIcon() {
   return (
@@ -13,10 +16,56 @@ function ArrowIcon() {
   );
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const stations = await getPublishedStations();
+
+  const tripJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    "@id": `${SITE_URL}/#trip`,
+    name: "סיור סליחות ירושלים",
+    description:
+      "סיור סליחות עצמאי ברגל בין 5 נקודות ציון בירושלים - ניווט חי, קודי QR וסרטונים שנפתחים בכל תחנה.",
+    image: `${SITE_URL}/og-image.jpg`,
+    url: SITE_URL,
+    inLanguage: "he-IL",
+    touristType: ["Family", "Couples", "Solo travelers"],
+    provider: { "@type": "Organization", name: "סיור סליחות ירושלים", url: SITE_URL },
+    ...(stations.length > 0 && {
+      itinerary: {
+        "@type": "ItemList",
+        numberOfItems: stations.length,
+        itemListElement: stations
+          .slice()
+          .sort((a, b) => a.orderIndex - b.orderIndex)
+          .map((station, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "TouristAttraction",
+              name: station.name,
+              ...(station.address && { address: station.address }),
+              ...(station.latitude != null &&
+                station.longitude != null && {
+                  geo: {
+                    "@type": "GeoCoordinates",
+                    latitude: station.latitude,
+                    longitude: station.longitude,
+                  },
+                }),
+            },
+          })),
+      },
+    }),
+  };
+
   return (
     <Screen className="justify-between gap-10">
       <TrackOnMount name="landing_viewed" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tripJsonLd).replace(/</g, "\\u003c") }}
+      />
 
       <header className="flex justify-center items-center pt-2 translate-y-[10px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
         <Logo size="lg" />

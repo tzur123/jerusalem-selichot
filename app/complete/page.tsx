@@ -7,7 +7,7 @@ import { ShareButton } from "@/components/complete/ShareButton";
 import { SuccessChime } from "@/components/complete/SuccessChime";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 
-export const metadata = { title: "סיימתם את הסיור!" };
+export const metadata = { title: "סיימתם את הסיור!", robots: { index: false } };
 
 export default async function CompletePage() {
   const [stations, sessionData] = await Promise.all([getPublishedStations(), getSessionProgress()]);

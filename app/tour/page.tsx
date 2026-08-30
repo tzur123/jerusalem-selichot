@@ -5,7 +5,7 @@ import { getSessionProgress } from "@/lib/session/progress";
 import { TourView } from "@/components/tour/TourView";
 import { isTourComplete } from "@/lib/session/next-station";
 
-export const metadata = { title: "מפת הסיור" };
+export const metadata = { title: "מפת הסיור", robots: { index: false } };
 
 export default async function TourPage() {
   const [stations, sessionData] = await Promise.all([getPublishedStations(), getSessionProgress()]);

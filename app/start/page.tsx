@@ -4,7 +4,11 @@ import { StartFlow } from "@/components/start/StartFlow";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Button } from "@/components/ui/Button";
 
-export const metadata = { title: "מאיפה מתחילים?" };
+export const metadata = {
+  title: "מאיפה מתחילים?",
+  description: "בחרו נקודת התחלה לסיור הסליחות — המסלול המומלץ, הנקודה הקרובה אליכם, או בחירה חופשית על המפה.",
+  alternates: { canonical: "/start" },
+};
 
 export default async function StartPage() {
   const stations = await getPublishedStations();

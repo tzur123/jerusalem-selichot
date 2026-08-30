@@ -5,6 +5,8 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { Button } from "@/components/ui/Button";
 import { Navigator } from "@/components/navigation/Navigator";
 
+export const metadata = { title: "ניווט לתחנה", robots: { index: false } };
+
 export default async function NavigatePage({
   params,
 }: {
