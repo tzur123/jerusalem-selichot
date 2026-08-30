@@ -22,7 +22,7 @@ export default function LandingPage() {
         <Logo size="lg" />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-3 translate-y-[25%] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
+      <section className="flex flex-col items-center text-center gap-3 translate-y-[calc(25%+25px)] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
         <h1 className="text-4xl font-heading font-bold leading-tight text-white translate-y-[10px]">
           5 תחנות. סיפור אחד.
           <br />
