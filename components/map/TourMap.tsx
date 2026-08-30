@@ -7,7 +7,7 @@ import type { LocatableStation } from "@/types/station";
 import type { ProgressStatus } from "@/lib/supabase/types";
 import { Spinner } from "@/components/ui/Spinner";
 import { StationListFallback } from "./StationListFallback";
-import { MAP_DARK_STYLE } from "./map-style";
+import { MAP_DARK_STYLE, statusPinIcon } from "./map-style";
 
 const STATUS_COLOR: Record<ProgressStatus, string> = {
   pending: "#93A6B5",
@@ -65,20 +65,7 @@ export function TourMap({
           const marker = new google.maps.Marker({
             position: { lat: station.latitude, lng: station.longitude },
             map,
-            label: {
-              text: String(station.orderIndex),
-              color: "#001B33",
-              fontWeight: "800",
-              fontSize: "13px",
-            },
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: color,
-              fillOpacity: 1,
-              strokeColor: "#F7FBFF",
-              strokeWeight: 2.5,
-              scale: 17,
-            },
+            icon: statusPinIcon(google, station.orderIndex, color),
             title: station.name,
             optimized: false,
           });
@@ -148,7 +135,11 @@ export function TourMap({
           <Spinner />
         </div>
       )}
-      <div ref={mapRef} className="h-full w-full rounded-3xl overflow-hidden" style={{ display: status === "ready" ? "block" : "none" }} />
+      <div
+        ref={mapRef}
+        className="h-full w-full rounded-3xl overflow-hidden ring-1 ring-gold/25 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.6)]"
+        style={{ display: status === "ready" ? "block" : "none" }}
+      />
     </div>
   );
 }

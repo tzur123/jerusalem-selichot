@@ -31,3 +31,23 @@ export function goldPinIcon(google: typeof globalThis.google, order: number): go
     anchor: new google.maps.Point(19, 48),
   };
 }
+
+/** Same luxurious teardrop shape as {@link goldPinIcon}, but with the outer
+ * fill driven by a per-station status color (progress state) instead of a
+ * fixed gold gradient — the gold ring/typeface tie it back to the same
+ * design language while still communicating tour progress at a glance. */
+export function statusPinIcon(google: typeof globalThis.google, order: number, color: string): google.maps.Icon {
+  const svg = `
+    <svg width="36" height="48" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 1.5C9.4 1.5 2.5 8.6 2.5 17c0 11.7 15.5 28 15.5 28S33.5 28.7 33.5 17C33.5 8.6 26.6 1.5 18 1.5Z"
+        fill="${color}" stroke="#F4E2B8" stroke-opacity="0.55" stroke-width="1.3"/>
+      <circle cx="18" cy="17.5" r="10" fill="#001B33" stroke="#F4E2B8" stroke-width="1.3" stroke-opacity="0.85"/>
+      <text x="18" y="22" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="12.5" font-weight="700" fill="#F4E2B8">${order}</text>
+    </svg>`.trim();
+
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new google.maps.Size(36, 48),
+    anchor: new google.maps.Point(18, 46),
+  };
+}
