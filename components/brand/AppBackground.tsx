@@ -1,10 +1,13 @@
+"use client";
+
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const BACKGROUNDS = {
   /** Moonlit archway, silhouettes walking away — calm, generous empty space for UI. */
   moonlit: "/backgrounds/bg-alley-4.png",
-  /** Pilgrims passing under a starlit arch — used for the landing hero. */
-  gate: "/backgrounds/bg-alley-1.png",
+  /** Illuminated old-city gate at night, lens-flare glow — used for the landing hero. */
+  gate: "/backgrounds/bg-gate-hero.png",
   /** Grand torch-lit bridge and tower — used for the active navigation flow. */
   bridge: "/backgrounds/bg-alley-2.png",
   /** Framed archway looking deep into the old city — used for arrival moments. */
@@ -16,20 +19,24 @@ export type BackgroundVariant = keyof typeof BACKGROUNDS;
 /**
  * Fixed, full-viewport night-Jerusalem backdrop rendered behind every screen.
  * Sits at z-[-1] so it never intercepts input; a dark gradient scrim plus a
- * light blur keep foreground glass panels legible on top of it.
+ * light blur keep foreground glass panels legible on top of it. The landing
+ * page gets its own hero image; every other route falls back to the default.
  */
 export function AppBackground({
-  variant = "moonlit",
+  variant,
   intensity = "normal",
 }: {
   variant?: BackgroundVariant;
   /** "normal" for visitor screens, "muted" for dense admin/content screens. */
   intensity?: "normal" | "muted";
 }) {
+  const pathname = usePathname();
+  const resolvedVariant = variant ?? (pathname === "/" ? "gate" : "moonlit");
+
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy" aria-hidden>
       <Image
-        src={BACKGROUNDS[variant]}
+        src={BACKGROUNDS[resolvedVariant]}
         alt=""
         fill
         priority

@@ -28,7 +28,7 @@ export default function LandingPage() {
         <Logo size="lg" />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-6">
+      <section className="flex flex-col items-center text-center gap-6 translate-y-[25%]">
         <h1 className="text-4xl font-heading font-bold leading-tight text-white">
           5 תחנות. סיפור אחד.
           <br />
