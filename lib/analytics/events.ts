@@ -1,4 +1,5 @@
 export const ANALYTICS_EVENT_NAMES = [
+  "page_view",
   "landing_viewed",
   "tour_started",
   "location_permission_granted",

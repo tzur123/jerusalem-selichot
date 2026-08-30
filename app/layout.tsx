@@ -9,6 +9,7 @@ import { TourTimer } from "@/components/tour/TourTimer";
 import { SoundProvider } from "@/lib/sound/SoundProvider";
 import { AccessibilityProvider, A11Y_BOOT_SCRIPT } from "@/lib/accessibility/AccessibilityContext";
 import { AccessibilityWidget } from "@/components/accessibility/AccessibilityWidget";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const SITE_TITLE = "ירושלים — סיור סליחות דיגיטלי";
@@ -136,6 +137,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <AccessibilityProvider>
           <SoundProvider>
+            <PageViewTracker />
             <AppBackground />
             <OfflineBanner />
             <FloatingControls />
