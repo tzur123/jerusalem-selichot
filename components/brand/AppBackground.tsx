@@ -31,7 +31,8 @@ export function AppBackground({
   intensity?: "normal" | "muted";
 }) {
   const pathname = usePathname();
-  const resolvedVariant = variant ?? (pathname === "/" ? "gate" : "moonlit");
+  const isLanding = pathname === "/";
+  const resolvedVariant = variant ?? (isLanding ? "gate" : "moonlit");
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy" aria-hidden>
@@ -43,10 +44,15 @@ export function AppBackground({
         sizes="100vw"
         className="object-cover object-top scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-navy/55 via-navy/60 to-navy" />
-      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_0%,var(--color-navy)_85%)]" />
-      {intensity === "muted" && <div className="absolute inset-0 bg-navy/55 backdrop-blur-[2px]" />}
-      <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:3px_3px]" />
+      {/* The landing page shows its hero photo untouched — no scrim/grain on top. */}
+      {!isLanding && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-b from-navy/55 via-navy/60 to-navy" />
+          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_0%,var(--color-navy)_85%)]" />
+          {intensity === "muted" && <div className="absolute inset-0 bg-navy/55 backdrop-blur-[2px]" />}
+          <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:3px_3px]" />
+        </>
+      )}
     </div>
   );
 }

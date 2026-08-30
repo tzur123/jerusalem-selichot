@@ -18,11 +18,11 @@ export default function LandingPage() {
     <Screen className="justify-between gap-10">
       <TrackOnMount name="landing_viewed" />
 
-      <header className="flex justify-center items-center pt-2">
+      <header className="flex justify-center items-center pt-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
         <Logo size="lg" />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-6 translate-y-[25%]">
+      <section className="flex flex-col items-center text-center gap-6 translate-y-[25%] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
         <h1 className="text-4xl font-heading font-bold leading-tight text-white">
           5 תחנות. סיפור אחד.
           <br />
