@@ -30,8 +30,8 @@ export default function LandingPage() {
         </h1>
         <div className="gold-divider w-24" />
         <p className="text-muted text-base max-w-sm">
-          סיור סליחות עצמאי בין חמש נקודות ציון בירושלים — בקצב שלכם, עם ניווט, QR וסרטונים
-          שנפתחים בכל תחנה.
+          סיור לילי ברגל בין חמש נקודות בירושלים — בלי קבוצה ובלי מדריך.
+          רק אתם, האבנים העתיקות, ולילה שמתעורר לקראת הסליחות.
         </p>
       </section>
 
