@@ -23,7 +23,6 @@ import { useCompassHeading } from "@/lib/device/heading";
 import { trackEventClient } from "@/lib/analytics/track-client";
 import { Screen } from "@/components/brand/Screen";
 import { Button } from "@/components/ui/Button";
-import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { NavigatorMap } from "./NavigatorMap";
 import { NavigationInstructionCard } from "./NavigationInstructionCard";
@@ -31,7 +30,7 @@ import { RouteProgress } from "./RouteProgress";
 import { NavControlButton } from "./NavControls";
 import { ArrivalSheet } from "./ArrivalSheet";
 
-type Phase = "priming" | "locating" | "routing" | "active" | "location-error" | "route-error";
+type Phase = "locating" | "routing" | "active" | "location-error" | "route-error";
 
 const STEP_ADVANCE_THRESHOLD_M = 18;
 
@@ -42,7 +41,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
     [station.latitude, station.longitude]
   );
 
-  const [phase, setPhase] = useState<Phase>("priming");
+  const [phase, setPhase] = useState<Phase>("locating");
   const [locationErrorMessage, setLocationErrorMessage] = useState<string | null>(null);
   const [userPosition, setUserPosition] = useState<GeoPosition | null>(null);
   const [route, setRoute] = useState<WalkingRoute | null>(null);
@@ -161,7 +160,6 @@ export function Navigator({ station }: { station: LocatableStation }) {
   const handleStart = useCallback(async () => {
     setPhase("locating");
     await requestWakeLock();
-    void compass.enable();
 
     try {
       const initial = await requestCurrentPosition();
@@ -182,14 +180,21 @@ export function Navigator({ station }: { station: LocatableStation }) {
       setLocationErrorMessage(err instanceof Error ? err.message : "שגיאה באיתור מיקום");
       setPhase("location-error");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchRoute, handlePositionUpdate, station.id]);
 
+  // Navigation starts the moment this screen mounts — location permission was
+  // already requested back on /start, so there's no need to make the visitor
+  // tap a second "start" button before we act on it. If something does go
+  // wrong (denied/timeout), the location-error phase below offers a retry
+  // and the Google Maps fallback. Deferred to a microtask so the setState
+  // calls inside handleStart don't read as synchronous setState-in-effect.
   useEffect(() => {
+    queueMicrotask(() => void handleStart());
     return () => {
       stopWatchingPosition(watchIdRef.current);
       void releaseWakeLock();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOpenGoogleMaps = useCallback(() => {
@@ -206,27 +211,6 @@ export function Navigator({ station }: { station: LocatableStation }) {
       : (route?.distanceMeters ?? 0);
 
   const etaSeconds = remainingMeters / AVERAGE_WALKING_SPEED_MPS;
-
-  if (phase === "priming") {
-    return (
-      <Screen>
-        <div className="flex flex-1 flex-col justify-center gap-5">
-          <Card className="flex flex-col gap-3 text-center items-center">
-            <CardTitle>ניווט לתחנה: {station.name}</CardTitle>
-            <CardSubtitle>
-              כדי לנווט אתכם בתוך האתר נבקש גישה למיקום שלכם ומעקב חי אחרי התנועה שלכם ברחוב.
-            </CardSubtitle>
-            <Button onClick={handleStart} size="lg" fullWidth>
-              התחילו ניווט
-            </Button>
-            <Button onClick={handleOpenGoogleMaps} variant="secondary" fullWidth>
-              פתחו ניווט ב-Google Maps
-            </Button>
-          </Card>
-        </div>
-      </Screen>
-    );
-  }
 
   if (phase === "locating" || phase === "routing") {
     return (
