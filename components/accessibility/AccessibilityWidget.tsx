@@ -9,7 +9,7 @@ import { useAccessibility, FONT_STEPS, type A11yToggleKey } from "@/lib/accessib
 
 function A11yIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden>
       <circle cx="12" cy="12" r="11" fill="currentColor" opacity="0.14" />
       <circle cx="12" cy="6.4" r="1.9" fill="currentColor" />
       <path
@@ -48,7 +48,7 @@ export function AccessibilityWidget() {
 
   return (
     <>
-      <div className="fixed z-40 top-1/2 -translate-y-1/2 right-0">
+      <div className="fixed z-40 top-1/2 -translate-y-1/2 left-0">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -57,7 +57,7 @@ export function AccessibilityWidget() {
           aria-controls="a11y-panel"
           aria-label="אפשרויות נגישות"
           title="נגישות"
-          className="flex h-12 w-12 items-center justify-center rounded-s-full glass-card text-white/90 hover:text-mint transition-colors border-e-0"
+          className="flex h-[38px] w-[38px] items-center justify-center rounded-e-full glass-card text-white/90 hover:text-mint transition-colors border-s-0"
         >
           <A11yIcon />
         </button>
