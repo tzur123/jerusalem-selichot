@@ -16,6 +16,7 @@ import { trackEventClient } from "@/lib/analytics/track-client";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { StationMapPicker } from "@/components/start/StationMapPicker";
 
 type LocationState =
   | { status: "requesting" }
@@ -52,7 +53,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
   const router = useRouter();
   const [locationState, setLocationState] = useState<LocationState>({ status: "requesting" });
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
-  const [showManualList, setShowManualList] = useState(false);
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
 
   const locatableStations = useMemo(() => stations.filter(isLocatable), [stations]);
@@ -199,40 +200,24 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         </button>
       )}
 
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowManualList((v) => !v)}
-          className="w-full text-center text-sm text-muted underline underline-offset-4"
-        >
-          לבחירת תחנה על המפה
-        </button>
+      <button
+        type="button"
+        onClick={() => setMapPickerOpen(true)}
+        className="w-full text-center text-sm text-muted underline underline-offset-4"
+      >
+        לבחירת תחנה על המפה
+      </button>
 
-        {showManualList && (
-          <div className="mt-4 flex flex-col gap-3">
-            {stations.map((station) => (
-              <button
-                key={station.id}
-                type="button"
-                onClick={() => selectStart(station, "manual")}
-                disabled={pending !== null}
-                className="text-right"
-              >
-                <Card className="flex items-center gap-3 py-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mint/15 text-mint font-black">
-                    {station.orderIndex}
-                  </span>
-                  <div className="flex-1">
-                    <CardTitle className="text-base">{station.name}</CardTitle>
-                    {station.address && <CardSubtitle className="text-xs">{station.address}</CardSubtitle>}
-                  </div>
-                  {pending === station.id && <Spinner />}
-                </Card>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <StationMapPicker
+        stations={stations}
+        open={mapPickerOpen}
+        onClose={() => setMapPickerOpen(false)}
+        pendingId={pending}
+        onSelect={(station) => {
+          setMapPickerOpen(false);
+          void selectStart(station, "manual");
+        }}
+      />
     </div>
   );
 }
