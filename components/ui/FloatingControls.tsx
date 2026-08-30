@@ -86,13 +86,13 @@ export function FloatingControls() {
   return (
     <>
       {backHref && (
-        <div className="fixed top-0 right-0 z-40 flex items-center px-3 pb-3 pt-[max(1.5rem,var(--safe-top))]">
+        <div className="fixed top-0 right-0 z-40 flex items-center px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]">
           <Link href={backHref} aria-label="חזרה" title="חזרה" className={buttonClass}>
             <BackIcon />
           </Link>
         </div>
       )}
-      <div className="fixed top-0 left-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(1.5rem,var(--safe-top))]">
+      <div className="fixed top-0 left-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]">
         {!hideMap && (
           <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
             <MapIcon />

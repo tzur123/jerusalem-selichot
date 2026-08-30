@@ -21,23 +21,12 @@ const SoundContext = createContext<SoundContextValue | null>(null);
 
 const STORAGE_KEY = "jslichot-muted";
 
-// Gentle ambient chord progression (frequencies in Hz). Sine pads, low gain.
-const CHORDS: number[][] = [
-  [130.81, 164.81, 196.0], // C
-  [110.0, 130.81, 164.81], // Am
-  [87.31, 110.0, 130.81], // F
-  [98.0, 123.47, 146.83], // G
-];
-
 export function SoundProvider({ children }: { children: ReactNode }) {
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
 
   const ctxRef = useRef<AudioContext | null>(null);
-  const musicGainRef = useRef<GainNode | null>(null);
   const sfxGainRef = useRef<GainNode | null>(null);
-  const musicTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const chordIndexRef = useRef(0);
 
   const ensureContext = useCallback(() => {
     if (typeof window === "undefined") return null;
@@ -47,77 +36,48 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       if (!Ctor) return null;
       const ctx = new Ctor();
 
-      const music = ctx.createGain();
-      music.gain.value = 0.06;
-      music.connect(ctx.destination);
-
       const sfx = ctx.createGain();
       sfx.gain.value = 0.22;
       sfx.connect(ctx.destination);
 
       ctxRef.current = ctx;
-      musicGainRef.current = music;
       sfxGainRef.current = sfx;
     }
     if (ctxRef.current.state === "suspended") void ctxRef.current.resume();
     return ctxRef.current;
   }, []);
 
-  const playChord = useCallback(() => {
-    const ctx = ctxRef.current;
-    const out = musicGainRef.current;
-    if (!ctx || !out || mutedRef.current) return;
-    const now = ctx.currentTime;
-    const chord = CHORDS[chordIndexRef.current % CHORDS.length];
-    chordIndexRef.current += 1;
-
-    for (const freq of chord) {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0.0001, now);
-      g.gain.linearRampToValueAtTime(0.5, now + 2.2); // slow swell
-      g.gain.linearRampToValueAtTime(0.0001, now + 6); // slow release
-      osc.connect(g).connect(out);
-      osc.start(now);
-      osc.stop(now + 6.2);
-    }
-  }, []);
-
-  const startMusic = useCallback(() => {
-    if (mutedRef.current) return;
-    const ctx = ensureContext();
-    if (!ctx) return;
-    if (musicTimerRef.current) return;
-    playChord();
-    musicTimerRef.current = setInterval(playChord, 5500);
-  }, [ensureContext, playChord]);
-
-  const stopMusic = useCallback(() => {
-    if (musicTimerRef.current) {
-      clearInterval(musicTimerRef.current);
-      musicTimerRef.current = null;
-    }
-  }, []);
-
+  // A soft, playful two-tone "bubble pop" — friendlier than a sharp UI click.
   const playClick = useCallback(() => {
     if (mutedRef.current) return;
     const ctx = ensureContext();
     const out = sfxGainRef.current;
     if (!ctx || !out) return;
     const now = ctx.currentTime;
+
     const osc = ctx.createOscillator();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(620, now);
-    osc.frequency.exponentialRampToValueAtTime(940, now + 0.04);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(720, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.1);
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(0.9, now + 0.006);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+    g.gain.exponentialRampToValueAtTime(0.55, now + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
     osc.connect(g).connect(out);
     osc.start(now);
-    osc.stop(now + 0.16);
+    osc.stop(now + 0.18);
+
+    const sparkle = ctx.createOscillator();
+    sparkle.type = "sine";
+    sparkle.frequency.setValueAtTime(1320, now);
+    sparkle.frequency.exponentialRampToValueAtTime(1040, now + 0.07);
+    const gs = ctx.createGain();
+    gs.gain.setValueAtTime(0.0001, now);
+    gs.gain.exponentialRampToValueAtTime(0.16, now + 0.008);
+    gs.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    sparkle.connect(gs).connect(out);
+    sparkle.start(now);
+    sparkle.stop(now + 0.1);
   }, [ensureContext]);
 
   const playSuccess = useCallback(() => {
@@ -151,14 +111,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       } catch {
         // ignore storage errors (private mode, etc.)
       }
-      if (next) {
-        stopMusic();
-      } else {
-        startMusic();
-      }
       return next;
     });
-  }, [startMusic, stopMusic]);
+  }, []);
 
   // Restore mute preference.
   useEffect(() => {
@@ -176,19 +131,16 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Kick off audio + ambient music on the first user gesture (autoplay policy).
+  // Unlock the AudioContext on the first user gesture (autoplay policy).
   useEffect(() => {
-    const onFirstGesture = () => {
-      ensureContext();
-      if (!mutedRef.current) startMusic();
-    };
+    const onFirstGesture = () => ensureContext();
     window.addEventListener("pointerdown", onFirstGesture, { once: true });
     window.addEventListener("keydown", onFirstGesture, { once: true });
     return () => {
       window.removeEventListener("pointerdown", onFirstGesture);
       window.removeEventListener("keydown", onFirstGesture);
     };
-  }, [ensureContext, startMusic]);
+  }, [ensureContext]);
 
   // Delegated click SFX for any button / link across the whole app.
   useEffect(() => {
@@ -201,21 +153,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
   }, [playClick]);
-
-  // Pause the ambient loop when the tab is hidden; resume when visible.
-  useEffect(() => {
-    const onVisibility = () => {
-      if (document.hidden) {
-        stopMusic();
-      } else if (!mutedRef.current) {
-        startMusic();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [startMusic, stopMusic]);
-
-  useEffect(() => () => stopMusic(), [stopMusic]);
 
   return (
     <SoundContext.Provider value={{ muted, toggleMute, playClick, playSuccess }}>
