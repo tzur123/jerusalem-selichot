@@ -197,35 +197,6 @@
     color: transparent;
   }
 
-  /* Aged-parchment frame for the vintage station-picker map: a warm vignette
-     and faint fibrous grain laid over the map tiles via multiply blending,
-     so it reads like an old cut-paper map rather than a plain UI element. */
-  .paper-map-frame {
-    position: relative;
-    box-shadow:
-      inset 0 0 2px 1px rgba(93, 70, 45, 0.55),
-      inset 0 0 46px rgba(93, 70, 45, 0.4),
-      0 20px 44px -22px rgba(0, 0, 0, 0.65);
-  }
-  .paper-map-frame::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    mix-blend-mode: multiply;
-    opacity: 0.75;
-    background:
-      radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(93, 70, 45, 0.5) 100%),
-      repeating-linear-gradient(
-        115deg,
-        rgba(93, 70, 45, 0.05) 0px,
-        rgba(93, 70, 45, 0.05) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-  }
-
   .font-heading {
     font-family: var(--font-heading), var(--font-sans), sans-serif;
   }

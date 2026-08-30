@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, isGoogleMapsConfigured } from "@/lib/google-maps/loader";
-import { VINTAGE_PAPER_STYLE } from "@/components/map/vintage-style";
+import { MAP_DARK_STYLE, goldPinIcon } from "@/components/map/map-style";
 import type { Station } from "@/types/station";
 import { isLocatable } from "@/types/station";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -53,23 +53,16 @@ export function StationMapPicker({
           disableDefaultUI: true,
           zoomControl: true,
           gestureHandling: "greedy",
-          styles: VINTAGE_PAPER_STYLE,
+          styles: MAP_DARK_STYLE,
         });
 
         markers.current = locatable.map((station) => {
           const marker = new google.maps.Marker({
             position: { lat: station.latitude, lng: station.longitude },
             map,
-            label: { text: String(station.orderIndex), color: "#3b2a1a", fontWeight: "800", fontSize: "13px" },
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: "#e8c887",
-              fillOpacity: 1,
-              strokeColor: "#3b2a1a",
-              strokeWeight: 2,
-              scale: 16,
-            },
+            icon: goldPinIcon(google, station.orderIndex),
             title: station.name,
+            optimized: false,
           });
           marker.addListener("click", () => setSelected(station));
           return marker;
@@ -97,9 +90,9 @@ export function StationMapPicker({
   return (
     <BottomSheet open={open} onClose={onClose} title="בחרו תחנה על המפה">
       {status !== "error" && (
-        <div className="relative h-[56vh] max-h-[26rem] w-full overflow-hidden rounded-2xl paper-map-frame">
+        <div className="relative h-[56vh] max-h-[26rem] w-full overflow-hidden rounded-2xl ring-1 ring-gold/20 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.6)]">
           {status === "loading" && (
-            <div className="absolute inset-0 flex items-center justify-center bg-[#e9dcb9]">
+            <div className="absolute inset-0 flex items-center justify-center glass-card rounded-2xl">
               <Spinner />
             </div>
           )}

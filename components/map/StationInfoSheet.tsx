@@ -29,10 +29,12 @@ export function StationInfoSheet({
   const unlocked = status === "unlocked" || status === "watching" || status === "completed";
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
-      {station && (
-        <div className="flex flex-col gap-4">
-          <div className="relative -mx-6 -mt-4 h-48 overflow-hidden">
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      headerImage={
+        station && (
+          <div className="relative h-56 w-full">
             <Image
               src={stationImage(station.orderIndex)}
               alt={station.name}
@@ -40,8 +42,8 @@ export function StationInfoSheet({
               sizes="(max-width: 512px) 100vw, 512px"
               className="object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/40 to-transparent" />
-            <span className="absolute top-4 end-4 flex h-11 w-11 items-center justify-center rounded-full bg-gold text-navy font-stencil text-xl shadow-[0_4px_16px_-2px_rgba(216,181,122,0.7)]">
+            <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/35 to-transparent" />
+            <span className="absolute top-4 start-4 flex h-11 w-11 items-center justify-center rounded-full bg-gold text-navy font-stencil text-xl shadow-[0_4px_16px_-2px_rgba(216,181,122,0.7)]">
               {station.orderIndex}
             </span>
             <div className="absolute inset-x-6 bottom-3">
@@ -49,7 +51,11 @@ export function StationInfoSheet({
               {status && <p className="text-xs text-gold mt-0.5">{STATUS_LABEL[status]}</p>}
             </div>
           </div>
-
+        )
+      }
+    >
+      {station && (
+        <div className="flex flex-col gap-4 pt-2">
           {station.shortDescription && (
             <p className="text-sm leading-relaxed text-muted">{station.shortDescription}</p>
           )}

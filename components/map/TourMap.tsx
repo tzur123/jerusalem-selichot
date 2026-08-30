@@ -7,6 +7,7 @@ import type { LocatableStation } from "@/types/station";
 import type { ProgressStatus } from "@/lib/supabase/types";
 import { Spinner } from "@/components/ui/Spinner";
 import { StationListFallback } from "./StationListFallback";
+import { MAP_DARK_STYLE } from "./map-style";
 
 const STATUS_COLOR: Record<ProgressStatus, string> = {
   pending: "#93A6B5",
@@ -151,12 +152,3 @@ export function TourMap({
     </div>
   );
 }
-
-const MAP_DARK_STYLE: google.maps.MapTypeStyle[] = [
-  { elementType: "geometry", stylers: [{ color: "#0b1f33" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#0b1f33" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#93a6b5" }] },
-  { featureType: "road", elementType: "geometry", stylers: [{ color: "#17324a" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#001b33" }] },
-  { featureType: "poi", stylers: [{ visibility: "off" }] },
-];
