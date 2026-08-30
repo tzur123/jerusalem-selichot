@@ -12,7 +12,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
 
   return (
     <div className="min-h-dvh-safe flex flex-col">
-      <header className="glass-card rounded-none border-x-0 border-t-0 safe-top">
+      <header className="glass-card rounded-none border-x-0 border-t-0 pt-[var(--safe-top)]">
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between px-6 py-3">
           <Logo />
           <nav className="flex items-center gap-4 text-sm">
@@ -31,7 +31,9 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
           </nav>
         </div>
       </header>
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8 safe-bottom safe-x">{children}</main>
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 pt-8 pb-[max(2rem,var(--safe-bottom))] safe-x">
+        {children}
+      </main>
     </div>
   );
 }

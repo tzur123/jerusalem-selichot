@@ -274,7 +274,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
         className="absolute inset-0"
       />
 
-      <div className="relative z-10 flex flex-col gap-3 p-6 safe-top pointer-events-none">
+      <div className="relative z-10 flex flex-col gap-3 p-6 pt-[max(1.5rem,var(--safe-top))] pointer-events-none">
         <div className="pointer-events-auto">
           {route && route.steps[stepIndex] && (
             <NavigationInstructionCard
@@ -297,7 +297,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
         )}
       </div>
 
-      <div className="mt-auto relative z-10 flex flex-col gap-3 p-6 safe-bottom pointer-events-none">
+      <div className="mt-auto relative z-10 flex flex-col gap-3 p-6 pb-[max(1.5rem,var(--safe-bottom))] pointer-events-none">
         <div className="flex justify-end gap-2 pointer-events-auto">
           <NavControlButton
             onClick={() => {

@@ -59,7 +59,7 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="fixed top-0 inset-x-0 z-[100] bg-stone text-navy text-center text-sm font-bold py-2 safe-top"
+      className="fixed top-0 inset-x-0 z-[100] bg-stone text-navy text-center text-sm font-bold pb-2 pt-[max(0.5rem,var(--safe-top))]"
     >
       אין חיבור לאינטרנט — חלק מהתכונות עלולות לא לפעול
     </div>

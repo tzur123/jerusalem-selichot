@@ -75,12 +75,16 @@
 }
 
 @layer utilities {
-  .safe-top {
-    padding-top: var(--safe-top);
-  }
-  .safe-bottom {
-    padding-bottom: var(--safe-bottom);
-  }
+  /* NOTE: there are deliberately no bare "safe-top" / "safe-bottom" utilities.
+     Every call site needs its own base gutter (0.75rem, 1.5rem, 2rem, etc), and
+     a plain padding-top or padding-bottom utility here would share that CSS
+     property with Tailwind's padding utilities and silently win the cascade,
+     zeroing out the intended padding on any non-notched screen (this bit us
+     for real; see the safe-x fix below). Use an arbitrary-value utility
+     instead, for example pt-[max(1.5rem,var(--safe-top))], so the base
+     gutter and the notch inset live in one declaration and can't fight
+     each other. */
+
   /* Always keep a comfortable side gutter (1.5rem), and grow it further on
      notched devices so content never sits flush against the screen edge.
      Uses max() because this utility shares padding-left/right with Tailwind's

@@ -61,7 +61,7 @@ export function FloatingControls() {
   const hideMap = pathname === "/tour" || pathname.startsWith("/navigate");
 
   return (
-    <div className="fixed top-0 left-0 z-40 flex items-center gap-2 p-3 safe-top">
+    <div className="fixed top-0 left-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(1.5rem,var(--safe-top))]">
       {!hideMap && (
         <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
           <MapIcon />
