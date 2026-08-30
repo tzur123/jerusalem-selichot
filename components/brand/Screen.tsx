@@ -13,6 +13,7 @@ export function Screen({
 }) {
   return (
     <main
+      id="main-content"
       className={cn(
         "flex-1 min-h-dvh-safe safe-x flex flex-col",
         contain &&

@@ -242,7 +242,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
   }
 
   return (
-    <div className="relative flex-1 min-h-dvh-safe flex flex-col">
+    <div id="main-content" className="relative flex-1 min-h-dvh-safe flex flex-col">
       <NavigatorMap
         destination={destination}
         polyline={route?.polyline ?? [destination]}

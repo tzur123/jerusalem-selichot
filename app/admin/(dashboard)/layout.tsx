@@ -31,7 +31,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
           </nav>
         </div>
       </header>
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 pt-8 pb-[max(2rem,var(--safe-bottom))] safe-x">
+      <main id="main-content" className="flex-1 max-w-5xl mx-auto w-full px-6 pt-8 pb-[max(2rem,var(--safe-bottom))] safe-x">
         {children}
       </main>
     </div>

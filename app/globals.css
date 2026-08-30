@@ -216,3 +216,111 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   Accessibility toolkit — see lib/accessibility/AccessibilityContext.tsx
+   and components/accessibility/AccessibilityWidget.tsx. Every rule here is
+   opt-in, toggled by classes/a CSS var the provider sets on <html> based
+   on the visitor's own choice, persisted so it holds across every page.
+   ============================================================ */
+
+html {
+  font-size: calc(100% * var(--a11y-font-scale, 1));
+}
+
+/* --- High contrast: solid black/white/yellow, no photos, no glass blur --- */
+html.a11y-contrast body {
+  background: #000 !important;
+  color: #fff !important;
+}
+html.a11y-contrast .glass-card,
+html.a11y-contrast .glass-panel,
+html.a11y-contrast .glass-button,
+html.a11y-contrast .glass-scrim {
+  background: #000 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 2px solid #fff !important;
+  box-shadow: none !important;
+}
+html.a11y-contrast .glass-card::before {
+  display: none !important;
+}
+/* Full-bleed hero/backdrop photography hurts legibility here — hide it. */
+html.a11y-contrast .a11y-hide-in-contrast {
+  display: none !important;
+}
+html.a11y-contrast .text-gradient-gold,
+html.a11y-contrast .text-gold,
+html.a11y-contrast .text-mint,
+html.a11y-contrast .text-muted,
+html.a11y-contrast .text-stone {
+  color: #ffe14d !important;
+  -webkit-text-fill-color: #ffe14d !important;
+}
+html.a11y-contrast a {
+  color: #ffe14d !important;
+}
+html.a11y-contrast button,
+html.a11y-contrast [role="button"] {
+  border: 2px solid #fff;
+}
+
+/* --- Grayscale --- */
+html.a11y-grayscale {
+  filter: grayscale(1);
+}
+
+/* --- Underline every link so it isn't identified by color alone --- */
+html.a11y-underline a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+/* --- Plain, highly legible font instead of the decorative brand faces --- */
+html.a11y-readable-font {
+  --font-sans: Arial, Helvetica, "Segoe UI", sans-serif;
+  --font-heading: Arial, Helvetica, "Segoe UI", sans-serif;
+  --font-stencil: Arial, Helvetica, "Segoe UI", sans-serif;
+}
+html.a11y-readable-font * {
+  letter-spacing: normal !important;
+}
+
+/* --- Stop all animation/transition/auto-motion (same as prefers-reduced-motion) --- */
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* --- Oversized cursor --- */
+html.a11y-big-cursor,
+html.a11y-big-cursor * {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'%3E%3Cpath d='M4 2 L4 19 L8.5 15.3 L11.6 21.8 L14.7 20.3 L11.6 13.9 L18 13.9 Z' fill='%23000' stroke='%23fff' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E")
+      4 2,
+    auto !important;
+}
+
+/* --- Strong, unmissable keyboard focus ring --- */
+html.a11y-strong-focus :focus-visible {
+  outline: 4px solid #ffe14d !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(255, 225, 77, 0.35) !important;
+  border-radius: 6px;
+}
+
+/* --- Generous line-height / letter/word spacing (WCAG 1.4.12) --- */
+html.a11y-text-spacing body {
+  line-height: 1.9 !important;
+  letter-spacing: 0.02em !important;
+  word-spacing: 0.05em !important;
+}
+html.a11y-text-spacing p,
+html.a11y-text-spacing li {
+  margin-bottom: 0.6em !important;
+}

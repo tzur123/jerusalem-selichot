@@ -40,7 +40,7 @@ export function AppBackground({
   const resolvedVariant = variant ?? (isLanding ? "gate" : isStart ? "citadel" : "moonlit");
 
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-navy" aria-hidden>
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-navy a11y-hide-in-contrast" aria-hidden>
       <Image
         src={BACKGROUNDS[resolvedVariant]}
         alt=""
