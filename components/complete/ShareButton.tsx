@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-export function ShareButton() {
+export function ShareButton({ durationText }: { durationText?: string | null }) {
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
     const shareData = {
       title: "סיור סליחות ירושלים",
-      text: "השלמתי את סיור הסליחות הדיגיטלי בירושלים — 5 תחנות, סיפור אחד!",
+      text: durationText
+        ? `השלמתי את סיור הסליחות הדיגיטלי בירושלים תוך ${durationText} — 5 תחנות, סיפור אחד!`
+        : "השלמתי את סיור הסליחות הדיגיטלי בירושלים — 5 תחנות, סיפור אחד!",
       url: typeof window !== "undefined" ? window.location.origin : undefined,
     };
 

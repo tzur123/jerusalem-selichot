@@ -5,6 +5,7 @@ import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { AppBackground } from "@/components/brand/AppBackground";
 import { FloatingControls } from "@/components/ui/FloatingControls";
+import { TourTimer } from "@/components/tour/TourTimer";
 import { SoundProvider } from "@/lib/sound/SoundProvider";
 import { AccessibilityProvider, A11Y_BOOT_SCRIPT } from "@/lib/accessibility/AccessibilityContext";
 import { AccessibilityWidget } from "@/components/accessibility/AccessibilityWidget";
@@ -138,6 +139,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <AppBackground />
             <OfflineBanner />
             <FloatingControls />
+            <TourTimer />
             <AccessibilityWidget />
             <ServiceWorkerRegister />
             {children}
