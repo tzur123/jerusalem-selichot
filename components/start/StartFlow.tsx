@@ -128,7 +128,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
     <>
       <div className="h-[38vh]" aria-hidden />
       <div className="flex flex-col gap-6">
-        <header className="pt-2">
+        <header className="pt-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
           <h1 className="text-2xl font-black">מאיפה מתחילים?</h1>
         </header>
 
@@ -159,7 +159,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         )}
 
         {locationState.status === "granted" && (
-          <p className="flex items-center gap-1.5 text-xs text-muted -mb-2">
+          <p className="flex items-center gap-1.5 text-xs text-muted -mb-2 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]">
             <PinIcon />
             {locationLabel ?? "מאתרים את הכתובת המדויקת..."}
           </p>
@@ -201,7 +201,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         <button
           type="button"
           onClick={() => setMapPickerOpen(true)}
-          className="w-full text-center text-sm text-muted underline underline-offset-4"
+          className="w-full text-center text-sm text-muted underline underline-offset-4 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]"
         >
           לבחירת תחנה על המפה
         </button>

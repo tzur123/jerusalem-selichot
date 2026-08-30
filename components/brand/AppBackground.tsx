@@ -22,7 +22,8 @@ export type BackgroundVariant = keyof typeof BACKGROUNDS;
  * Fixed, full-viewport night-Jerusalem backdrop rendered behind every screen.
  * Sits at z-[-1] so it never intercepts input; a dark gradient scrim plus a
  * light blur keep foreground glass panels legible on top of it. The landing
- * page gets its own hero image; every other route falls back to the default.
+ * and start pages show their hero photo untouched instead; every other
+ * route falls back to the default scrim treatment.
  */
 export function AppBackground({
   variant,
@@ -34,8 +35,9 @@ export function AppBackground({
 }) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
-  const resolvedVariant =
-    variant ?? (isLanding ? "gate" : pathname === "/start" ? "citadel" : "moonlit");
+  const isStart = pathname === "/start";
+  const showPhotoPlain = isLanding || isStart;
+  const resolvedVariant = variant ?? (isLanding ? "gate" : isStart ? "citadel" : "moonlit");
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy" aria-hidden>
@@ -47,8 +49,8 @@ export function AppBackground({
         sizes="100vw"
         className="object-cover object-top scale-105"
       />
-      {/* The landing page shows its hero photo untouched — no scrim/grain on top. */}
-      {!isLanding && (
+      {/* The landing and start pages show their hero photo untouched — no scrim/grain on top. */}
+      {!showPhotoPlain && (
         <>
           <div className="absolute inset-0 bg-gradient-to-b from-navy/55 via-navy/60 to-navy" />
           <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_0%,var(--color-navy)_85%)]" />
