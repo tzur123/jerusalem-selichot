@@ -23,10 +23,10 @@ export default function LandingPage() {
       </header>
 
       <section className="flex flex-col items-center text-center gap-6 translate-y-[25%] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
-        <h1 className="text-4xl font-heading font-bold leading-tight text-white">
+        <h1 className="text-4xl font-heading font-bold leading-tight text-white translate-y-[10px]">
           5 תחנות. סיפור אחד.
           <br />
-          <span className="text-gradient-gold">ירושלים בלילה.</span>
+          <span className="text-gradient-gold">אל שערי הסליחות</span>
         </h1>
         <div className="gold-divider w-24" />
         <p className="text-muted text-base max-w-sm">
