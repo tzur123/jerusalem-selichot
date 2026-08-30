@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Station } from "@/types/station";
 import { isLocatable } from "@/types/station";
-import { findNearest } from "@/lib/geo/haversine";
+import { findNearest, haversineDistanceMeters, estimateWalkingSeconds } from "@/lib/geo/haversine";
 import {
   requestCurrentPosition,
   GeolocationPermissionDeniedError,
@@ -16,6 +16,7 @@ import { trackEventClient } from "@/lib/analytics/track-client";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { StationMapPicker } from "@/components/start/StationMapPicker";
 
 type LocationState =
@@ -47,11 +48,22 @@ function ArrowIcon({ size = 18 }: { size?: number }) {
   );
 }
 
+function formatWalkTime(seconds: number): string {
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  return `כ-${minutes} דק' הליכה`;
+}
+
+function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters / 10) * 10} מ׳`;
+  return `${(meters / 1000).toFixed(1)} ק"מ`;
+}
+
 export function StartFlow({ stations }: { stations: Station[] }) {
   const router = useRouter();
   const [locationState, setLocationState] = useState<LocationState>({ status: "requesting" });
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
+  const [nearbyPickerOpen, setNearbyPickerOpen] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
 
   const locatableStations = useMemo(() => stations.filter(isLocatable), [stations]);
@@ -63,6 +75,18 @@ export function StartFlow({ stations }: { stations: Station[] }) {
       { lat: locationState.position.lat, lng: locationState.position.lng },
       locatableStations
     );
+  }, [locationState, locatableStations]);
+
+  /** All locatable stations sorted nearest-first, for the "pick a nearby point" popup. */
+  const byDistance = useMemo(() => {
+    if (locationState.status !== "granted") return [];
+    const origin = { lat: locationState.position.lat, lng: locationState.position.lng };
+    return locatableStations
+      .map((station) => ({
+        station,
+        distanceMeters: haversineDistanceMeters(origin, { lat: station.latitude, lng: station.longitude }),
+      }))
+      .sort((a, b) => a.distanceMeters - b.distanceMeters);
   }, [locationState, locatableStations]);
 
   // No synchronous setState here (only after the first await) so this is
@@ -189,12 +213,12 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         {locationState.status === "granted" && nearest && (
           <button
             type="button"
-            onClick={() => selectStart(nearest.item, "nearest")}
+            onClick={() => setNearbyPickerOpen(true)}
             disabled={pending !== null}
             className="flex w-full items-center justify-between gap-3 rounded-2xl glass-button border border-mint/30 px-5 py-3 text-white/90 transition-colors hover:border-mint/60 disabled:opacity-50"
           >
             <span className="text-sm font-semibold">התחל מנקודה אחרת שקרובה אלי</span>
-            {pending === nearest.item.id ? <Spinner /> : <ArrowIcon size={15} />}
+            <ArrowIcon size={15} />
           </button>
         )}
 
@@ -205,18 +229,55 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         >
           לבחירת תחנה על המפה
         </button>
-
-        <StationMapPicker
-          stations={stations}
-          open={mapPickerOpen}
-          onClose={() => setMapPickerOpen(false)}
-          pendingId={pending}
-          onSelect={(station) => {
-            setMapPickerOpen(false);
-            void selectStart(station, "manual");
-          }}
-        />
       </div>
+
+      {/* Rendered outside the translated wrapper above: BottomSheet uses fixed
+          positioning, and a transformed ancestor would turn that into a
+          containing block, breaking the "fixed to viewport" behavior. */}
+      <BottomSheet
+        open={nearbyPickerOpen}
+        onClose={() => setNearbyPickerOpen(false)}
+        title="נקודות לפי מרחק אליכם"
+      >
+        <div className="flex flex-col gap-3">
+          {byDistance.map(({ station, distanceMeters }) => (
+            <button
+              key={station.id}
+              type="button"
+              onClick={() => {
+                setNearbyPickerOpen(false);
+                void selectStart(station, "nearest");
+              }}
+              disabled={pending !== null}
+              className="text-right disabled:cursor-default"
+            >
+              <Card className="flex items-center gap-3 py-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold font-stencil ring-1 ring-gold/30">
+                  {station.orderIndex}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base truncate">{station.name}</CardTitle>
+                  <CardSubtitle className="text-xs">
+                    {formatDistance(distanceMeters)} · {formatWalkTime(estimateWalkingSeconds(distanceMeters))}
+                  </CardSubtitle>
+                </div>
+                {pending === station.id && <Spinner />}
+              </Card>
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      <StationMapPicker
+        stations={stations}
+        open={mapPickerOpen}
+        onClose={() => setMapPickerOpen(false)}
+        pendingId={pending}
+        onSelect={(station) => {
+          setMapPickerOpen(false);
+          void selectStart(station, "manual");
+        }}
+      />
     </>
   );
 }
