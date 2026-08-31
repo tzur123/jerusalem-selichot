@@ -90,11 +90,14 @@ export function FloatingControls() {
   return (
     <>
       {/* Municipality logo: large on the landing hero, small everywhere else —
-          always the same top-left fixture, independent of the icon cluster. */}
-      <div
+          always the same top-left fixture, flush against the top edge, and
+          always a link back home. */}
+      <Link
+        href="/"
+        aria-label="למעבר לדף הבית"
         className={cn(
-          "fixed top-0 left-0 z-40",
-          !isLanding && "pt-[max(0.75rem,var(--safe-top))] ps-3"
+          "fixed top-0 left-0 z-40 block",
+          !isLanding && "pt-[var(--safe-top)] ps-3"
         )}
       >
         <Image
@@ -105,7 +108,7 @@ export function FloatingControls() {
           priority={isLanding}
           className={cn("h-auto", isLanding ? "w-[140px]" : "w-[112px]")}
         />
-      </div>
+      </Link>
 
       {/* Icon cluster: always the same top-right position and order on every
           page — back (when there's somewhere to go back to) leads, then the
