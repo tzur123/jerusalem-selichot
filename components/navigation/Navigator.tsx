@@ -279,7 +279,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
         className="absolute inset-0"
       />
 
-      <div className="relative z-10 flex flex-col gap-3 p-6 pt-[calc(max(1.5rem,var(--safe-top))+20px)] pointer-events-none">
+      <div className="relative z-10 flex flex-col gap-3 p-6 pt-[calc(max(1.5rem,var(--safe-top))+40px)] pointer-events-none">
         <div className="pointer-events-auto">
           {route && route.steps[stepIndex] && (
             <NavigationInstructionCard
