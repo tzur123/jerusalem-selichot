@@ -28,6 +28,8 @@ import { NavigatorMap } from "./NavigatorMap";
 import { NavigationInstructionCard } from "./NavigationInstructionCard";
 import { RouteProgress } from "./RouteProgress";
 import { NavControlButton } from "./NavControls";
+import { NavigationTimerBadge } from "./NavigationTimerBadge";
+import { DirectionsListSheet } from "./DirectionsListSheet";
 import { ArrivalSheet } from "./ArrivalSheet";
 
 type Phase = "locating" | "routing" | "active" | "location-error" | "route-error";
@@ -49,6 +51,8 @@ export function Navigator({ station }: { station: LocatableStation }) {
   const [follow, setFollow] = useState(true);
   const [arrived, setArrived] = useState(false);
   const [usingStraightLineFallback, setUsingStraightLineFallback] = useState(false);
+  const [directionsOpen, setDirectionsOpen] = useState(false);
+  const [compassNotice, setCompassNotice] = useState<string | null>(null);
 
   // Mirrors of the state above, readable synchronously from the geolocation
   // watch callback below without re-subscribing watchPosition on every change.
@@ -202,6 +206,23 @@ export function Navigator({ station }: { station: LocatableStation }) {
     window.open(buildGoogleMapsWalkingUrl(destination), "_blank", "noopener,noreferrer");
   }, [destination, station.id]);
 
+  const handleEnableCompass = useCallback(async () => {
+    const result = await compass.enable();
+    if (result === "unsupported") {
+      setCompassNotice("המצפן אינו נתמך במכשיר הזה — הכיוון ימשיך להתעדכן לפי תנועת ההליכה בלבד.");
+    } else if (result === "denied") {
+      setCompassNotice("הגישה למצפן לא אושרה. ניתן לאשר אותה בהגדרות הפרטיות/האתר בדפדפן ולנסות שוב.");
+    } else {
+      setCompassNotice(null);
+    }
+  }, [compass]);
+
+  useEffect(() => {
+    if (!compassNotice) return;
+    const id = setTimeout(() => setCompassNotice(null), 5000);
+    return () => clearTimeout(id);
+  }, [compassNotice]);
+
   const remainingMeters =
     route && userPosition
       ? usingStraightLineFallback
@@ -258,7 +279,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
         className="absolute inset-0"
       />
 
-      <div className="relative z-10 flex flex-col gap-3 p-6 pt-[max(1.5rem,var(--safe-top))] pointer-events-none">
+      <div className="relative z-10 flex flex-col gap-3 p-6 pt-[calc(max(1.5rem,var(--safe-top))+20px)] pointer-events-none">
         <div className="pointer-events-auto">
           {route && route.steps[stepIndex] && (
             <NavigationInstructionCard
@@ -271,6 +292,7 @@ export function Navigator({ station }: { station: LocatableStation }) {
                     )
                   : route.steps[stepIndex].distanceMeters
               }
+              onClick={() => setDirectionsOpen(true)}
             />
           )}
         </div>
@@ -282,7 +304,8 @@ export function Navigator({ station }: { station: LocatableStation }) {
       </div>
 
       <div className="mt-auto relative z-10 flex flex-col gap-3 p-6 pb-[max(1.5rem,var(--safe-bottom))] pointer-events-none">
-        <div className="flex justify-end gap-2 pointer-events-auto">
+        <div className="flex items-center justify-end gap-2 pointer-events-auto">
+          <NavigationTimerBadge />
           <NavControlButton
             onClick={() => {
               setFollow(true);
@@ -293,21 +316,33 @@ export function Navigator({ station }: { station: LocatableStation }) {
           >
             🎯
           </NavControlButton>
-          <NavControlButton onClick={() => void compass.enable()} label="הפעלת מצפן" active={Boolean(compass.heading)}>
+          <NavControlButton onClick={handleEnableCompass} label="הפעלת מצפן" active={Boolean(compass.heading)}>
             🧭
           </NavControlButton>
         </div>
+        {compassNotice && (
+          <div className="pointer-events-auto rounded-2xl bg-stone/20 border border-stone/40 px-4 py-2 text-sm">
+            {compassNotice}
+          </div>
+        )}
 
         <div className="pointer-events-auto">
           <RouteProgress remainingMeters={remainingMeters} etaSeconds={etaSeconds} />
         </div>
 
         <div className="pointer-events-auto">
-          <Button onClick={handleOpenGoogleMaps} variant="secondary" fullWidth>
+          <Button onClick={handleOpenGoogleMaps} variant="secondary" fullWidth style={{ minHeight: "24px" }}>
             פתחו ניווט ב-Google Maps
           </Button>
         </div>
       </div>
+
+      <DirectionsListSheet
+        open={directionsOpen}
+        onClose={() => setDirectionsOpen(false)}
+        steps={route?.steps ?? []}
+        currentStepIndex={stepIndex}
+      />
 
       <ArrivalSheet
         open={arrived}

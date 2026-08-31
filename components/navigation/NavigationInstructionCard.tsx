@@ -3,11 +3,14 @@ import { Card } from "@/components/ui/Card";
 export function NavigationInstructionCard({
   instruction,
   distanceToNextMeters,
+  onClick,
 }: {
   instruction: string;
   distanceToNextMeters: number;
+  /** Opens the full turn-by-turn directions list when provided. */
+  onClick?: () => void;
 }) {
-  return (
+  const content = (
     <Card className="mint-glow flex items-center gap-3 py-4" role="status" aria-live="polite">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-mint/15 text-2xl" aria-hidden>
         ↰
@@ -19,5 +22,13 @@ export function NavigationInstructionCard({
         </p>
       </div>
     </Card>
+  );
+
+  if (!onClick) return content;
+
+  return (
+    <button type="button" onClick={onClick} className="w-full text-start" aria-label="הצגת כל הוראות הניווט">
+      {content}
+    </button>
   );
 }

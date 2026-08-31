@@ -25,21 +25,23 @@ export function useCompassHeading() {
     }
   }, []);
 
-  const enable = useCallback(async () => {
-    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) return;
+  const enable = useCallback(async (): Promise<"granted" | "denied" | "unsupported"> => {
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) return "unsupported";
     const DOE = DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission;
 
     try {
       if (typeof DOE.requestPermission === "function") {
         const result = await DOE.requestPermission();
-        if (result !== "granted") return;
+        if (result !== "granted") return "denied";
       }
       if (!listening.current) {
         window.addEventListener("deviceorientation", handleOrientation, true);
         listening.current = true;
       }
+      return "granted";
     } catch {
       // Unsupported / denied — navigation continues without compass rotation.
+      return "denied";
     }
   }, [handleOrientation]);
 
