@@ -48,7 +48,7 @@ export function AccessibilityWidget() {
 
   return (
     <>
-      <div className="fixed z-40 top-1/2 -translate-y-1/2 left-0">
+      <div className="fixed z-40 top-[calc(50%-30px)] -translate-y-1/2 right-0">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -57,7 +57,7 @@ export function AccessibilityWidget() {
           aria-controls="a11y-panel"
           aria-label="אפשרויות נגישות"
           title="נגישות"
-          className="flex h-[38px] w-[38px] items-center justify-center rounded-e-full glass-card text-white/90 hover:text-mint transition-colors border-s-0"
+          className="flex h-[38px] w-[38px] items-center justify-center rounded-s-full glass-card text-white/90 hover:text-mint transition-colors border-e-0"
         >
           <A11yIcon />
         </button>
