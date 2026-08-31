@@ -85,52 +85,38 @@ export function FloatingControls() {
   // On the immersive navigation screen we already have dedicated controls.
   const hideMap = pathname === "/tour" || pathname.startsWith("/navigate");
   const backHref = getBackHref(pathname);
-  // The landing page has no back button (nothing to go back to), so its
-  // top-right corner is free — mirror the icon cluster there and give the
-  // now-empty top-left corner to the municipality logo instead.
   const isLanding = pathname === "/";
 
   return (
     <>
-      {backHref && (
-        <div className="fixed top-0 right-0 z-40 flex items-center px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]">
+      {/* Municipality logo: large on the landing hero, small everywhere else —
+          always the same top-left fixture, independent of the icon cluster. */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 z-40",
+          !isLanding && "pt-[max(0.75rem,var(--safe-top))] ps-3"
+        )}
+      >
+        <Image
+          src="/brand/jer-logo.png"
+          alt="עיריית ירושלים — ירושלים, אין כמוה בעולם"
+          width={753}
+          height={400}
+          priority={isLanding}
+          className={cn("h-auto", isLanding ? "w-[140px]" : "w-[54px]")}
+        />
+      </div>
+
+      {/* Icon cluster: always the same top-right position and order on every
+          page — back (when there's somewhere to go back to) leads, then the
+          menu, then the rest. */}
+      <div className="fixed top-0 right-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]">
+        {backHref && (
           <Link href={backHref} aria-label="חזרה" title="חזרה" className={buttonClass}>
             <BackIcon />
           </Link>
-        </div>
-      )}
-      {isLanding && (
-        <div className="fixed top-0 left-0 z-40">
-          <Image
-            src="/brand/jer-logo.png"
-            alt="עיריית ירושלים — ירושלים, אין כמוה בעולם"
-            width={753}
-            height={400}
-            priority
-            className="h-auto w-[140px]"
-          />
-        </div>
-      )}
-      <div
-        className={cn(
-          "fixed top-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]",
-          isLanding ? "right-0" : "left-0"
         )}
-      >
-        {!isLanding && (
-          <Image
-            src="/brand/jer-logo.png"
-            alt="עיריית ירושלים — ירושלים, אין כמוה בעולם"
-            width={753}
-            height={400}
-            className="h-auto w-[54px] shrink-0"
-          />
-        )}
-        {!hideMap && (
-          <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
-            <MapIcon />
-          </Link>
-        )}
+        <HamburgerMenu className={buttonClass} />
         <button
           type="button"
           onClick={toggleMute}
@@ -141,7 +127,11 @@ export function FloatingControls() {
         >
           {muted ? <SoundOffIcon /> : <SoundOnIcon />}
         </button>
-        <HamburgerMenu className={buttonClass} />
+        {!hideMap && (
+          <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
+            <MapIcon />
+          </Link>
+        )}
       </div>
     </>
   );
