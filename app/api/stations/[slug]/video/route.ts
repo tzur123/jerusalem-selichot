@@ -3,6 +3,7 @@ import { env } from "@/lib/config/env";
 import { getStationBySlug } from "@/lib/data/stations";
 import { getSessionProgress } from "@/lib/session/progress";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getAdminSession } from "@/lib/admin/auth";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
 const UNLOCKED_STATUSES = new Set(["unlocked", "watching", "completed"]);
@@ -23,8 +24,9 @@ export async function GET(_request: Request, ctx: { params: Promise<{ slug: stri
 
   const sessionData = await getSessionProgress();
   const progress = sessionData?.progress.find((p) => p.stationId === station.id);
+  const isAdminPreview = Boolean(await getAdminSession());
 
-  if (!progress || !UNLOCKED_STATUSES.has(progress.status)) {
+  if (!isAdminPreview && (!progress || !UNLOCKED_STATUSES.has(progress.status))) {
     return NextResponse.json(
       { error: "Station is locked. Scan the QR code at the station first." },
       { status: 403 }

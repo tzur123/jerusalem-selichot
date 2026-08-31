@@ -11,7 +11,16 @@ import { ErrorState } from "@/components/ui/ErrorState";
 
 type VideoData = { videoUrl: string; posterUrl: string | null; captionsUrl: string | null };
 
-export function StationVideoPlayer({ station, alreadyCompleted }: { station: Station; alreadyCompleted: boolean }) {
+export function StationVideoPlayer({
+  station,
+  alreadyCompleted,
+  previewMode = false,
+}: {
+  station: Station;
+  alreadyCompleted: boolean;
+  /** Admin-only preview: plays the real uploaded file without touching this visitor's tour progress or analytics. */
+  previewMode?: boolean;
+}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const milestonesRef = useRef(new Set<number>());
@@ -46,6 +55,9 @@ export function StationVideoPlayer({ station, alreadyCompleted }: { station: Sta
     if (completedRef.current) return;
     completedRef.current = true;
     setCompleted(true);
+
+    if (previewMode) return;
+
     trackEventClient("video_90", { stationId: station.id });
     trackEventClient("station_completed", { stationId: station.id });
 
@@ -65,7 +77,7 @@ export function StationVideoPlayer({ station, alreadyCompleted }: { station: Sta
     } catch {
       setNextStationSlug("__complete__");
     }
-  }, [station.id]);
+  }, [station.id, previewMode]);
 
   function handleTimeUpdate() {
     const video = videoRef.current;
@@ -73,12 +85,14 @@ export function StationVideoPlayer({ station, alreadyCompleted }: { station: Sta
 
     if (!startedRef.current) {
       startedRef.current = true;
-      trackEventClient("video_started", { stationId: station.id });
-      void fetch("/api/session/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "video_started", stationId: station.id }),
-      });
+      if (!previewMode) {
+        trackEventClient("video_started", { stationId: station.id });
+        void fetch("/api/session/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "video_started", stationId: station.id }),
+        });
+      }
     }
 
     const pct = (video.currentTime / video.duration) * 100;
@@ -87,7 +101,7 @@ export function StationVideoPlayer({ station, alreadyCompleted }: { station: Sta
         milestonesRef.current.add(milestone);
         if (milestone === 90) {
           void completeStation();
-        } else {
+        } else if (!previewMode) {
           trackEventClient(milestone === 25 ? "video_25" : "video_50", { stationId: station.id });
         }
       }
@@ -139,13 +153,19 @@ export function StationVideoPlayer({ station, alreadyCompleted }: { station: Sta
         הדפדפן שלכם אינו תומך בהצגת וידאו.
       </video>
 
-      {!completed && (
+      {!completed && !previewMode && (
         <Button variant="secondary" fullWidth onClick={completeStation}>
           סיימתי, ממשיכים
         </Button>
       )}
 
-      {completed && (
+      {completed && previewMode && (
+        <Card className="flex flex-col items-center gap-3 text-center">
+          <CardSubtitle>הסרטון עבר את סף הצפייה (90%) — כך ייראה למבקר בשטח.</CardSubtitle>
+        </Card>
+      )}
+
+      {completed && !previewMode && (
         <Card className="flex flex-col items-center gap-3 text-center">
           <CardSubtitle>התחנה הושלמה בהצלחה!</CardSubtitle>
           <Button onClick={handleNextClick} size="lg" fullWidth disabled={nextStationSlug === null}>

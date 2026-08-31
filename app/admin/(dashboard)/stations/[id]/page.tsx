@@ -39,6 +39,12 @@ export default async function AdminStationEditorPage({ params }: { params: Promi
           <MediaUploader stationId={station.id} kind="poster" currentPath={station.posterPath ?? null} />
           <MediaUploader stationId={station.id} kind="captions" currentPath={station.captionsPath ?? null} />
           <MediaUploader stationId={station.id} kind="hero" currentPath={station.heroImagePath ?? null} />
+          <Button href={`/station/${station.slug}`} target="_blank" rel="noopener noreferrer" variant="secondary" fullWidth>
+            צפייה בדף התחנה והסרטון (תצוגה מקדימה)
+          </Button>
+          <p className="text-xs text-muted -mt-2">
+            פותח את הדף כמו שהמבקר יראה אותו, גם אם התחנה עדיין נעולה — לא נרשם כביקור בסטטיסטיקות.
+          </p>
         </Card>
       )}
 
