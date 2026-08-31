@@ -132,7 +132,13 @@ export default function PrivacyPolicyPage() {
       </Section>
 
       <Section title="פנייה בנושא פרטיות">
-        <p>שאלות או בקשות בנוגע למדיניות פרטיות זו ניתן להפנות באמצעות פרטי יצירת הקשר המופיעים בתפריט האתר.</p>
+        <p>
+          שאלות או בקשות בנוגע למדיניות פרטיות זו ניתן להפנות בדוא&quot;ל לכתובת{" "}
+          <a href="mailto:t@stzur.com" className="underline underline-offset-2 text-white" dir="ltr">
+            t@stzur.com
+          </a>
+          .
+        </p>
       </Section>
 
       <Section title="עדכון המדיניות">

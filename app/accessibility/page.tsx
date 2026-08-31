@@ -59,13 +59,19 @@ export default function AccessibilityStatementPage() {
         </p>
         <ul className="flex flex-col gap-1">
           <li>
-            <span className="text-white font-semibold">רכז/ת נגישות:</span> [להשלמה בידי בעל האתר]
+            <span className="text-white font-semibold">רכז/ת נגישות:</span> אליסף צור
           </li>
           <li>
-            <span className="text-white font-semibold">טלפון:</span> [להשלמה בידי בעל האתר]
+            <span className="text-white font-semibold">טלפון:</span>{" "}
+            <a href="tel:0544464590" className="underline underline-offset-2 text-white">
+              054-4464590
+            </a>
           </li>
           <li>
-            <span className="text-white font-semibold">דוא&quot;ל:</span> [להשלמה בידי בעל האתר]
+            <span className="text-white font-semibold">דוא&quot;ל:</span>{" "}
+            <a href="mailto:t@stzur.com" className="underline underline-offset-2 text-white" dir="ltr">
+              t@stzur.com
+            </a>
           </li>
         </ul>
         <p>
