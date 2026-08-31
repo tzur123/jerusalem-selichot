@@ -1,9 +1,10 @@
-import { getStationBySlug } from "@/lib/data/stations";
+import { getStationBySlug, getPublishedStations } from "@/lib/data/stations";
 import { getSessionProgress } from "@/lib/session/progress";
 import { Screen } from "@/components/brand/Screen";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Button } from "@/components/ui/Button";
 import { StationVideoPlayer } from "@/components/video/StationVideoPlayer";
+import { StationArrivalCelebration } from "@/components/station/StationArrivalCelebration";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -51,8 +52,15 @@ export default async function StationPage({ params }: { params: Promise<{ slug: 
     );
   }
 
+  const justUnlocked = progress?.status === "unlocked";
+  const isFinalStation = justUnlocked
+    ? (await getPublishedStations()).every((s) => s.id === station.id || s.orderIndex < station.orderIndex)
+    : false;
+
   return (
     <Screen>
+      {justUnlocked && <StationArrivalCelebration stationName={station.name} isFinalStation={isFinalStation} />}
+
       <header className="pt-2 pb-4">
         <h1 className="text-2xl font-black">{station.name}</h1>
         {station.shortDescription && <p className="text-muted text-sm mt-1">{station.shortDescription}</p>}

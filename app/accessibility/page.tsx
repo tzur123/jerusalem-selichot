@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 
 export const metadata = {
   title: "הצהרת נגישות",
-  description: "הצהרת הנגישות של אתר סיור סליחות ירושלים — התאמות הנגישות הקיימות באתר ופרטי יצירת קשר.",
+  description: "הצהרת הנגישות של אתר סיורי סליחות בירושלים — התאמות הנגישות הקיימות באתר ופרטי יצירת קשר.",
   alternates: { canonical: "/accessibility" },
 };
 
@@ -19,11 +19,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function AccessibilityStatementPage() {
   return (
-    <Screen className="gap-5">
+    <Screen className="gap-5" wide>
       <header className="pt-4">
-        <h1 className="text-2xl font-black">הצהרת נגישות</h1>
+        <h1 className="text-2xl md:text-3xl font-black">הצהרת נגישות</h1>
         <p className="text-muted text-sm mt-1">
-          אתר &quot;סיור סליחות ירושלים&quot; פועל להנגשת השירות הדיגיטלי לכלל הציבור, לרבות אנשים עם מוגבלות.
+          אתר &quot;סיורי סליחות בירושלים&quot; פועל להנגשת השירות הדיגיטלי לכלל הציבור, לרבות אנשים עם מוגבלות.
         </p>
       </header>
 

@@ -2,8 +2,8 @@ import type { Station } from "@/types/station";
 
 /**
  * Seed / fallback station data — the five stops of the Selichot night walk,
- * in the order set by the product owner: Rav Kook's house (start), the
- * Hurva Synagogue, Jaffa Gate, Beit Orot, and the Western Wall. All names,
+ * in the order set by the product owner: Rav Kook's house (start), Jaffa
+ * Gate, the Hurva Synagogue, Beit Orot, and the Western Wall. All names,
  * addresses and coordinates are real, well-known public Jerusalem landmarks.
  * The product owner can rename/reorder/replace any of them and swap in
  * their own media via the /admin panel.
@@ -41,7 +41,7 @@ export const SEED_STATIONS: Station[] = [
     address: "רחוב החברה, הרובע היהודי, ירושלים",
     latitude: 31.77435,
     longitude: 35.23117,
-    orderIndex: 2,
+    orderIndex: 3,
     isDefaultStart: false,
     arrivalRadiusM: 45,
     videoPath: null,
@@ -59,7 +59,7 @@ export const SEED_STATIONS: Station[] = [
     address: "שער יפו, העיר העתיקה, ירושלים",
     latitude: 31.77653,
     longitude: 35.2277,
-    orderIndex: 3,
+    orderIndex: 2,
     isDefaultStart: false,
     arrivalRadiusM: 45,
     videoPath: null,

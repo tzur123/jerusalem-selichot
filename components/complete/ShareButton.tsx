@@ -8,7 +8,7 @@ export function ShareButton({ durationText }: { durationText?: string | null }) 
 
   async function handleShare() {
     const shareData = {
-      title: "סיור סליחות ירושלים",
+      title: "סיורי סליחות בירושלים",
       text: durationText
         ? `השלמתי את סיור הסליחות הדיגיטלי בירושלים תוך ${durationText} — 5 תחנות, סיפור אחד!`
         : "השלמתי את סיור הסליחות הדיגיטלי בירושלים — 5 תחנות, סיפור אחד!",

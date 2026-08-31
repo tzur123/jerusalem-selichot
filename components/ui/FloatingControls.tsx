@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSound } from "@/lib/sound/SoundProvider";
+import { HamburgerMenu } from "@/components/ui/HamburgerMenu";
 import { cn } from "@/lib/utils/cn";
 
 function BackIcon() {
@@ -69,6 +70,7 @@ function getBackHref(pathname: string): string | null {
   if (pathname === "/complete") return "/tour";
   if (pathname.startsWith("/station/")) return "/tour";
   if (pathname.startsWith("/navigate/")) return "/tour";
+  if (pathname.startsWith("/places/")) return "/info";
   if (pathname === "/offline") return "/";
   return "/";
 }
@@ -115,6 +117,15 @@ export function FloatingControls() {
           isLanding ? "right-0" : "left-0"
         )}
       >
+        {!isLanding && (
+          <Image
+            src="/brand/jer-logo.png"
+            alt="עיריית ירושלים — ירושלים, אין כמוה בעולם"
+            width={753}
+            height={400}
+            className="h-auto w-[54px] shrink-0"
+          />
+        )}
         {!hideMap && (
           <Link href="/tour" aria-label="חזרה למפת הסיור" title="מפת הסיור" className={buttonClass}>
             <MapIcon />
@@ -130,6 +141,7 @@ export function FloatingControls() {
         >
           {muted ? <SoundOffIcon /> : <SoundOnIcon />}
         </button>
+        <HamburgerMenu className={buttonClass} />
       </div>
     </>
   );

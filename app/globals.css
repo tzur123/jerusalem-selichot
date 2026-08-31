@@ -227,6 +227,18 @@
 html {
   font-size: calc(100% * var(--a11y-font-scale, 1));
 }
+/* Base text reads slightly small once stretched across a tablet/desktop
+   viewport at 1x zoom — nudge it up a touch past phone widths. */
+@media (min-width: 768px) {
+  html {
+    font-size: calc(106% * var(--a11y-font-scale, 1));
+  }
+}
+@media (min-width: 1024px) {
+  html {
+    font-size: calc(112% * var(--a11y-font-scale, 1));
+  }
+}
 
 /* --- High contrast: solid black/white/yellow, no photos, no glass blur --- */
 html.a11y-contrast body {

@@ -1,7 +1,7 @@
 -- Seed data for local/dev Supabase projects.
 --
 -- The five stops of the Selichot night walk, in the order set by the product
--- owner: Rav Kook's house (start), the Hurva Synagogue, Jaffa Gate, Beit
+-- owner: Rav Kook's house (start), Jaffa Gate, the Hurva Synagogue, Beit
 -- Orot, and the Western Wall. All coordinates are real public Jerusalem
 -- landmarks; the product owner can rename/reorder/replace them and add
 -- media via /admin.
@@ -28,7 +28,7 @@ insert into public.stations (
     'כיפתה הלבנה מזנקת מעל גגות הרובע היהודי, ורואים אותה כמעט מכל פינה בעיר העתיקה. פעמיים נהרס בית הכנסת הזה — פעם בידי נושי חוב במאה ה-18, ופעם בקרבות 1948 — ופעמיים נבנה מחדש, עד לשחזורו המלא ב-2010. שווה לעצור כמה דקות בפנים, מתחת לכיפה, לפני שממשיכים הלאה.',
     'רחוב החברה, הרובע היהודי, ירושלים',
     31.77435, 35.23117,
-    2, false, 45, true
+    3, false, 45, true
   ),
   (
     '00000000-0000-4000-8000-000000000003',
@@ -38,7 +38,7 @@ insert into public.stations (
     'השער הרחב ביותר בחומות העיר העתיקה הורחב במיוחד לקראת ביקורו של הקיסר הגרמני וילהלם השני ב-1898 — עד אז נכנסו כאן רק דרך פתח צר בצד. היום עוברים בו כל יום אלפי אנשים: תיירים, סוחרים, כמרים, חיילים. בלילה, כשההמולה שוככת, נשמע רק הד הצעדים על האבן.',
     'שער יפו, העיר העתיקה, ירושלים',
     31.77653, 35.2277,
-    3, false, 45, true
+    2, false, 45, true
   ),
   (
     '00000000-0000-4000-8000-000000000004',

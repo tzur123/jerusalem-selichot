@@ -23,14 +23,14 @@ export default async function LandingPage() {
     "@context": "https://schema.org",
     "@type": "TouristTrip",
     "@id": `${SITE_URL}/#trip`,
-    name: "סיור סליחות ירושלים",
+    name: "סיורי סליחות בירושלים",
     description:
       "סיור סליחות עצמאי ברגל בין 5 נקודות ציון בירושלים - ניווט חי, קודי QR וסרטונים שנפתחים בכל תחנה.",
     image: `${SITE_URL}/og-image.jpg`,
     url: SITE_URL,
     inLanguage: "he-IL",
     touristType: ["Family", "Couples", "Solo travelers"],
-    provider: { "@type": "Organization", name: "סיור סליחות ירושלים", url: SITE_URL },
+    provider: { "@type": "Organization", name: "סיורי סליחות בירושלים", url: SITE_URL },
     ...(stations.length > 0 && {
       itinerary: {
         "@type": "ItemList",

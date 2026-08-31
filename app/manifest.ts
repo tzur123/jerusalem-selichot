@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "סיור סליחות ירושלים",
+    name: "סיורי סליחות בירושלים",
     short_name: "סליחות ירושלים",
     description: "5 תחנות. סיפור אחד. סיור סליחות עצמאי בירושלים.",
     start_url: "/",
