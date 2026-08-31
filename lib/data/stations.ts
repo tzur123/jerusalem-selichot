@@ -22,6 +22,13 @@ export type StationInput = {
   videoPath?: string | null;
   posterPath?: string | null;
   captionsPath?: string | null;
+  heroImagePath?: string | null;
+  articleSeoTitle?: string | null;
+  articleMetaDescription?: string | null;
+  articleKeywords?: string | null;
+  articleHeading?: string | null;
+  articleDuration?: string | null;
+  articleBody?: string | null;
 };
 
 /**
@@ -106,6 +113,13 @@ function toStationRowPatch(input: Partial<StationInput>): Partial<StationRow> {
   if (input.videoPath !== undefined) patch.video_path = input.videoPath;
   if (input.posterPath !== undefined) patch.poster_path = input.posterPath;
   if (input.captionsPath !== undefined) patch.captions_path = input.captionsPath;
+  if (input.heroImagePath !== undefined) patch.hero_image_path = input.heroImagePath;
+  if (input.articleSeoTitle !== undefined) patch.article_seo_title = input.articleSeoTitle;
+  if (input.articleMetaDescription !== undefined) patch.article_meta_description = input.articleMetaDescription;
+  if (input.articleKeywords !== undefined) patch.article_keywords = input.articleKeywords;
+  if (input.articleHeading !== undefined) patch.article_heading = input.articleHeading;
+  if (input.articleDuration !== undefined) patch.article_duration = input.articleDuration;
+  if (input.articleBody !== undefined) patch.article_body = input.articleBody;
   return patch;
 }
 
@@ -130,6 +144,13 @@ export async function createStation(input: StationInput): Promise<Station> {
       posterPath: input.posterPath ?? null,
       captionsPath: input.captionsPath ?? null,
       isPublished: input.isPublished,
+      heroImagePath: input.heroImagePath ?? null,
+      articleSeoTitle: input.articleSeoTitle ?? null,
+      articleMetaDescription: input.articleMetaDescription ?? null,
+      articleKeywords: input.articleKeywords ?? null,
+      articleHeading: input.articleHeading ?? null,
+      articleDuration: input.articleDuration ?? null,
+      articleBody: input.articleBody ?? null,
     };
     mockStore.stations.set(station.id, station);
     return station;

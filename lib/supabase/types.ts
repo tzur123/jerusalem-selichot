@@ -19,6 +19,13 @@ export type StationRow = {
   poster_path: string | null;
   captions_path: string | null;
   is_published: boolean;
+  hero_image_path: string | null;
+  article_seo_title: string | null;
+  article_meta_description: string | null;
+  article_keywords: string | null;
+  article_heading: string | null;
+  article_duration: string | null;
+  article_body: string | null;
   created_at: string;
   updated_at: string;
 };

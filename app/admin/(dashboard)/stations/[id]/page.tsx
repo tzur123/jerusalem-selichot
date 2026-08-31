@@ -38,6 +38,7 @@ export default async function AdminStationEditorPage({ params }: { params: Promi
           <MediaUploader stationId={station.id} kind="video" currentPath={station.videoPath ?? null} />
           <MediaUploader stationId={station.id} kind="poster" currentPath={station.posterPath ?? null} />
           <MediaUploader stationId={station.id} kind="captions" currentPath={station.captionsPath ?? null} />
+          <MediaUploader stationId={station.id} kind="hero" currentPath={station.heroImagePath ?? null} />
         </Card>
       )}
 

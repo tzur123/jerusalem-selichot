@@ -50,6 +50,12 @@ function parseStationForm(formData: FormData) {
     videoPath: (formData.get("videoPath") as string) || null,
     posterPath: (formData.get("posterPath") as string) || null,
     captionsPath: (formData.get("captionsPath") as string) || null,
+    articleSeoTitle: (formData.get("articleSeoTitle") as string) || null,
+    articleMetaDescription: (formData.get("articleMetaDescription") as string) || null,
+    articleKeywords: (formData.get("articleKeywords") as string) || null,
+    articleHeading: (formData.get("articleHeading") as string) || null,
+    articleDuration: (formData.get("articleDuration") as string) || null,
+    articleBody: (formData.get("articleBody") as string) || null,
   };
 }
 
@@ -87,9 +93,11 @@ export async function updateStationAction(
     return { error: "יש לתקן את השדות המסומנים", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  await updateStation(stationId, parsed.data);
+  const station = await updateStation(stationId, parsed.data);
   revalidatePath("/admin/stations");
   revalidatePath(`/admin/stations/${stationId}`);
+  revalidatePath(`/places/${station.slug}`);
+  revalidatePath(`/station/${station.slug}`);
   redirect("/admin/stations");
 }
 
@@ -101,7 +109,14 @@ export async function reorderStationsAction(order: { id: string; orderIndex: num
   revalidatePath("/admin/stations");
 }
 
-const MEDIA_BUCKET = "station-videos";
+type MediaKind = "video" | "poster" | "captions" | "hero";
+
+/** `hero` images live in the public `station-public` bucket (stable URLs for
+ * statically generated pages); everything else stays in the private,
+ * signed-URL-only `station-videos` bucket used by the gated in-tour flow. */
+function bucketForKind(kind: MediaKind): string {
+  return kind === "hero" ? "station-public" : "station-videos";
+}
 
 /**
  * Mints a short-lived signed upload URL so the browser can stream large
@@ -111,7 +126,7 @@ const MEDIA_BUCKET = "station-videos";
  */
 export async function createMediaUploadUrlAction(
   stationId: string,
-  kind: "video" | "poster" | "captions",
+  kind: MediaKind,
   fileName: string
 ): Promise<{ error?: string; path?: string; token?: string; signedUrl?: string }> {
   await requireAdmin();
@@ -124,7 +139,7 @@ export async function createMediaUploadUrlAction(
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${stationId}/${kind}-${Date.now()}-${safeName}`;
 
-  const { data, error } = await supabase.storage.from(MEDIA_BUCKET).createSignedUploadUrl(path);
+  const { data, error } = await supabase.storage.from(bucketForKind(kind)).createSignedUploadUrl(path);
   if (error || !data) {
     return { error: `יצירת קישור העלאה נכשלה: ${error?.message ?? "שגיאה לא ידועה"}` };
   }
@@ -135,14 +150,16 @@ export async function createMediaUploadUrlAction(
 /** Persists the storage path on the station once the browser finished the direct upload. */
 export async function finalizeMediaUploadAction(
   stationId: string,
-  kind: "video" | "poster" | "captions",
+  kind: MediaKind,
   path: string
 ): Promise<{ error?: string }> {
   await requireAdmin();
 
-  const field = kind === "video" ? "videoPath" : kind === "poster" ? "posterPath" : "captionsPath";
-  await updateStation(stationId, { [field]: path });
+  const field =
+    kind === "video" ? "videoPath" : kind === "poster" ? "posterPath" : kind === "hero" ? "heroImagePath" : "captionsPath";
+  const station = await updateStation(stationId, { [field]: path });
   revalidatePath(`/admin/stations/${stationId}`);
+  if (kind === "hero") revalidatePath(`/places/${station.slug}`);
 
   return {};
 }

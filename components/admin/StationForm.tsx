@@ -3,8 +3,10 @@
 import { useActionState } from "react";
 import type { Station } from "@/types/station";
 import { createStationAction, updateStationAction, type StationFormState } from "@/lib/admin/actions";
+import { getStationArticle } from "@/lib/content/station-articles";
+import { sectionsToArticleBody } from "@/lib/content/article-body";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 
 function Field({
   label,
@@ -46,6 +48,20 @@ export function StationForm({ station }: { station?: Station }) {
   const isEdit = Boolean(station);
   const action = isEdit ? updateStationAction.bind(null, station!.id) : createStationAction;
   const [state, formAction, pending] = useActionState<StationFormState, FormData>(action, undefined);
+
+  // Pre-fill the public-page fields from the built-in default copy when the
+  // admin hasn't overridden them yet, so editing starts from today's real
+  // content instead of a blank form.
+  const fallbackArticle = station ? getStationArticle(station.slug) : null;
+  const defaultArticleHeading = station?.articleHeading ?? fallbackArticle?.heading ?? "";
+  const defaultArticleDuration = station?.articleDuration ?? fallbackArticle?.duration ?? "";
+  const defaultArticleSeoTitle = station?.articleSeoTitle ?? fallbackArticle?.seoTitle ?? "";
+  const defaultArticleMetaDescription = station?.articleMetaDescription ?? fallbackArticle?.metaDescription ?? "";
+  const defaultArticleKeywords =
+    station?.articleKeywords ??
+    (fallbackArticle ? [fallbackArticle.focusKeyphrase, ...fallbackArticle.secondaryKeyphrases].join(", ") : "");
+  const defaultArticleBody =
+    station?.articleBody ?? (fallbackArticle ? sectionsToArticleBody(fallbackArticle.sections) : "");
 
   return (
     <Card>
@@ -141,6 +157,63 @@ export function StationForm({ station }: { station?: Station }) {
         <Field label="נתיב וידאו" name="videoPath" defaultValue={station?.videoPath ?? ""} />
         <Field label="נתיב תמונת קאבר" name="posterPath" defaultValue={station?.posterPath ?? ""} />
         <Field label="נתיב כתוביות (WebVTT)" name="captionsPath" defaultValue={station?.captionsPath ?? ""} />
+
+        <hr className="border-white/10" />
+        <div>
+          <CardTitle>דף המידע הציבורי (SEO)</CardTitle>
+          <CardSubtitle>
+            התוכן שמוצג בעמוד הציבורי של המיקום (<code>/places/{station?.slug || "..."}</code>), הנגיש לכל אחד
+            וללא צורך בסיור פעיל. השדות כאן מגיעים ממולאים מהתוכן הקיים — אפשר לערוך ולשמור.
+          </CardSubtitle>
+        </div>
+
+        <Field label="כותרת המאמר (H1)" name="articleHeading" defaultValue={defaultArticleHeading} />
+        <Field label="משך ביקור מומלץ" name="articleDuration" defaultValue={defaultArticleDuration} />
+        <Field label="כותרת SEO (תג Title)" name="articleSeoTitle" defaultValue={defaultArticleSeoTitle} />
+
+        <div>
+          <label htmlFor="articleMetaDescription" className="block text-sm text-muted mb-1">
+            תיאור מטא (SEO)
+          </label>
+          <textarea
+            id="articleMetaDescription"
+            name="articleMetaDescription"
+            defaultValue={defaultArticleMetaDescription}
+            rows={2}
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-mint outline-none"
+          />
+        </div>
+
+        <Field
+          label="מילות מפתח (מופרדות בפסיקים)"
+          name="articleKeywords"
+          defaultValue={defaultArticleKeywords}
+        />
+
+        <div>
+          <label htmlFor="articleBody" className="block text-sm text-muted mb-1">
+            תוכן המאמר
+          </label>
+          <p className="text-xs text-muted mb-2">
+            כל פסקה בשורה נפרדת, עם שורה ריקה בין פסקה לפסקה. כדי להוסיף כותרת משנה, התחילו שורה ב־
+            <code className="text-white/80">## </code> (למשל: <code className="text-white/80">## הסיפור מתחיל</code>).
+          </p>
+          <textarea
+            id="articleBody"
+            name="articleBody"
+            defaultValue={defaultArticleBody}
+            rows={16}
+            dir="rtl"
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white focus:border-mint outline-none font-mono text-sm leading-relaxed"
+          />
+        </div>
+
+        {station && (
+          <p className="text-xs text-muted">
+            להחלפת התמונה הראשית של המיקום — גללו למטה ל&quot;מדיה לתחנה&quot; ותעלו קובץ תחת &quot;תמונה
+            ראשית&quot;.
+          </p>
+        )}
 
         {state?.error && (
           <p role="alert" className="text-sm text-red-300">

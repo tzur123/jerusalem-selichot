@@ -19,6 +19,13 @@ export function stationRowToStation(row: StationRow): Station {
     posterPath: row.poster_path,
     captionsPath: row.captions_path,
     isPublished: row.is_published,
+    heroImagePath: row.hero_image_path,
+    articleSeoTitle: row.article_seo_title,
+    articleMetaDescription: row.article_meta_description,
+    articleKeywords: row.article_keywords,
+    articleHeading: row.article_heading,
+    articleDuration: row.article_duration,
+    articleBody: row.article_body,
   };
 }
 

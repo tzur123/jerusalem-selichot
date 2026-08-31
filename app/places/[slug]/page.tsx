@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Screen } from "@/components/brand/Screen";
 import { Button } from "@/components/ui/Button";
 import { getStationArticle, STATION_ARTICLE_SLUGS } from "@/lib/content/station-articles";
+import { parseArticleBody } from "@/lib/content/article-body";
 import { getStationBySlug } from "@/lib/data/stations";
+import { getStationPublicMediaUrl } from "@/lib/media/public-url";
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -12,29 +15,46 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = getStationArticle(slug);
-  if (!article) return { title: "התחנה אינה זמינה" };
+  const fallback = getStationArticle(slug);
+  if (!fallback) return { title: "התחנה אינה זמינה" };
+  const station = await getStationBySlug(slug);
+
+  const seoTitle = station?.articleSeoTitle || fallback.seoTitle;
+  const metaDescription = station?.articleMetaDescription || fallback.metaDescription;
+  const keywords = station?.articleKeywords
+    ? station.articleKeywords.split(",").map((k) => k.trim()).filter(Boolean)
+    : [fallback.focusKeyphrase, ...fallback.secondaryKeyphrases];
+  const heroImageUrl = getStationPublicMediaUrl(station?.heroImagePath ?? null);
 
   return {
-    title: article.seoTitle,
-    description: article.metaDescription,
-    keywords: [article.focusKeyphrase, ...article.secondaryKeyphrases],
+    title: seoTitle,
+    description: metaDescription,
+    keywords,
     alternates: { canonical: `/places/${slug}` },
     openGraph: {
-      title: article.seoTitle,
-      description: article.metaDescription,
+      title: seoTitle,
+      description: metaDescription,
       url: `${SITE_URL}/places/${slug}`,
       type: "article",
+      ...(heroImageUrl && { images: [{ url: heroImageUrl }] }),
     },
   };
 }
 
 export default async function StationArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = getStationArticle(slug);
-  if (!article) notFound();
+  const fallback = getStationArticle(slug);
+  if (!fallback) notFound();
 
   const station = await getStationBySlug(slug);
+
+  const heading = station?.articleHeading || fallback.heading;
+  const duration = station?.articleDuration || fallback.duration;
+  const location = station?.address || fallback.location;
+  const sections = station?.articleBody ? parseArticleBody(station.articleBody) : fallback.sections;
+  const heroImageUrl = getStationPublicMediaUrl(station?.heroImagePath ?? null);
+
+  const article = { ...fallback, heading, duration, location, sections };
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -47,6 +67,7 @@ export default async function StationArticlePage({ params }: { params: Promise<{
       station?.longitude != null && {
         geo: { "@type": "GeoCoordinates", latitude: station.latitude, longitude: station.longitude },
       }),
+    ...(heroImageUrl && { image: heroImageUrl }),
   };
 
   return (
@@ -55,6 +76,19 @@ export default async function StationArticlePage({ params }: { params: Promise<{
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
+
+      {heroImageUrl && (
+        <div className="relative -mx-6 sm:mx-0 aspect-[16/9] w-[calc(100%+3rem)] sm:w-full overflow-hidden rounded-none sm:rounded-3xl">
+          <Image
+            src={heroImageUrl}
+            alt={article.heading}
+            fill
+            sizes="(min-width: 768px) 768px, 100vw"
+            className="object-cover"
+            priority
+          />
+        </div>
+      )}
 
       <header className="pt-4">
         {station && (

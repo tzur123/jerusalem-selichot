@@ -3,24 +3,27 @@
 import { useRef, useState } from "react";
 import { createMediaUploadUrlAction, finalizeMediaUploadAction } from "@/lib/admin/actions";
 
-type Kind = "video" | "poster" | "captions";
+type Kind = "video" | "poster" | "captions" | "hero";
 
 const LABELS: Record<Kind, string> = {
   video: "סרטון",
   poster: "תמונת קאבר",
   captions: "כתוביות (WebVTT)",
+  hero: "תמונה ראשית (לדף המידע הציבורי)",
 };
 
 const MAX_MB: Record<Kind, number> = {
   video: 300,
   poster: 20,
   captions: 5,
+  hero: 20,
 };
 
 const ACCEPT: Record<Kind, string> = {
   video: "video/*",
   poster: "image/*",
   captions: ".vtt,text/vtt",
+  hero: "image/*",
 };
 
 /**

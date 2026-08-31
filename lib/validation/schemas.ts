@@ -40,6 +40,13 @@ export const stationUpsertSchema = z.object({
   videoPath: z.string().max(500).optional().nullable(),
   posterPath: z.string().max(500).optional().nullable(),
   captionsPath: z.string().max(500).optional().nullable(),
+  heroImagePath: z.string().max(500).optional().nullable(),
+  articleSeoTitle: z.string().max(200).optional().nullable(),
+  articleMetaDescription: z.string().max(400).optional().nullable(),
+  articleKeywords: z.string().max(400).optional().nullable(),
+  articleHeading: z.string().max(200).optional().nullable(),
+  articleDuration: z.string().max(100).optional().nullable(),
+  articleBody: z.string().max(20000).optional().nullable(),
 });
 
 export const reorderSchema = z.object({
