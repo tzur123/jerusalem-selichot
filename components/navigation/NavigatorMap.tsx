@@ -28,6 +28,7 @@ export function NavigatorMap({
   follow,
   onMapReady,
   onUserDrag,
+  onSelectStation,
   className,
 }: {
   /** All published, locatable stations — always rendered as numbered pins,
@@ -41,6 +42,8 @@ export function NavigatorMap({
   follow: boolean;
   onMapReady?: (recenter: () => void) => void;
   onUserDrag?: () => void;
+  /** Fires when a station pin is tapped (or `null` to dismiss any open info card). */
+  onSelectStation?: (station: LocatableStation | null) => void;
   className?: string;
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -70,7 +73,7 @@ export function NavigatorMap({
 
         stationMarkers.current = stations.map((station) => {
           const isCompleted = progressByStationId?.get(station.id) === "completed";
-          return new google.maps.Marker({
+          const marker = new google.maps.Marker({
             position: { lat: station.latitude, lng: station.longitude },
             map: mapInstance.current!,
             icon: statusPinIcon(google, station.orderIndex, isCompleted ? COMPLETED_PIN_COLOR : GOLD_PIN_COLOR),
@@ -78,9 +81,15 @@ export function NavigatorMap({
             optimized: false,
             zIndex: isCompleted ? 500 : 600,
           });
+          marker.addListener("click", () => onSelectStation?.(station));
+          return marker;
         });
 
-        mapInstance.current.addListener("dragstart", () => onUserDrag?.());
+        mapInstance.current.addListener("click", () => onSelectStation?.(null));
+        mapInstance.current.addListener("dragstart", () => {
+          onSelectStation?.(null);
+          onUserDrag?.();
+        });
 
         setStatus("ready");
         onMapReady?.(() => {

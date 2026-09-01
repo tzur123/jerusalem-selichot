@@ -24,6 +24,7 @@ import { useCompassHeading } from "@/lib/device/heading";
 import { trackEventClient } from "@/lib/analytics/track-client";
 import { Screen } from "@/components/brand/Screen";
 import { Button } from "@/components/ui/Button";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { NavigatorMap } from "./NavigatorMap";
 import { NavigationInstructionCard } from "./NavigationInstructionCard";
@@ -65,6 +66,7 @@ export function Navigator({
   const [directionsOpen, setDirectionsOpen] = useState(false);
   const [compassNotice, setCompassNotice] = useState<string | null>(null);
   const [compassOpen, setCompassOpen] = useState(false);
+  const [selectedStation, setSelectedStation] = useState<LocatableStation | null>(null);
 
   // Mirrors of the state above, readable synchronously from the geolocation
   // watch callback below without re-subscribing watchPosition on every change.
@@ -301,6 +303,7 @@ export function Navigator({
         follow={follow}
         onMapReady={(recenter) => (recenterRef.current = recenter)}
         onUserDrag={() => setFollow(false)}
+        onSelectStation={setSelectedStation}
         className="absolute inset-0"
       />
 
@@ -325,6 +328,24 @@ export function Navigator({
         {usingStraightLineFallback && (
           <div className="pointer-events-auto rounded-2xl bg-stone/20 border border-stone/40 px-4 py-2 text-sm">
             לא הצלחנו לחשב מסלול הליכה מדויק — מוצג קו ישר לתחנה. מומלץ להשתמש ב-Google Maps.
+          </div>
+        )}
+        {selectedStation && (
+          <div className="pointer-events-auto">
+            <Card className="flex items-center gap-3 py-3 px-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy font-stencil text-lg">
+                {selectedStation.orderIndex}
+              </span>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base truncate">{selectedStation.name}</CardTitle>
+                {selectedStation.address && (
+                  <CardSubtitle className="text-xs truncate">{selectedStation.address}</CardSubtitle>
+                )}
+              </div>
+              <Button href={`/navigate/${selectedStation.slug}`} size="md" className="shrink-0">
+                נווטו לשם
+              </Button>
+            </Card>
           </div>
         )}
       </div>
