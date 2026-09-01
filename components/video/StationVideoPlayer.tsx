@@ -32,6 +32,8 @@ export function StationVideoPlayer({
   const [completed, setCompleted] = useState(alreadyCompleted);
   const [nextStationSlug, setNextStationSlug] = useState<string | null>(null);
   const [nextStationName, setNextStationName] = useState<string | null>(null);
+  const [advancing, setAdvancing] = useState(false);
+  const completionPromiseRef = useRef<Promise<{ slug: string; name: string } | "complete"> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,32 +53,46 @@ export function StationVideoPlayer({
     };
   }, [station.slug]);
 
-  const completeStation = useCallback(async () => {
-    if (completedRef.current) return;
+  /**
+   * Marks the station complete (once) and resolves with where to go next.
+   * Shared by the passive 90%-watched/onEnded triggers (fire-and-forget) and
+   * the "continue" button (awaited) so a visitor who clicks "continue"
+   * before the video naturally finishes doesn't need a separate second
+   * click once the request comes back — everyone awaits the same promise.
+   */
+  const completeStation = useCallback((): Promise<{ slug: string; name: string } | "complete"> => {
+    if (completionPromiseRef.current) return completionPromiseRef.current;
     completedRef.current = true;
     setCompleted(true);
 
-    if (previewMode) return;
+    const promise = (async (): Promise<{ slug: string; name: string } | "complete"> => {
+      if (previewMode) return "complete";
 
-    trackEventClient("video_90", { stationId: station.id });
-    trackEventClient("station_completed", { stationId: station.id });
+      trackEventClient("video_90", { stationId: station.id });
+      trackEventClient("station_completed", { stationId: station.id });
 
-    try {
-      const res = await fetch("/api/session/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "video_completed", stationId: station.id }),
-      });
-      const json = await res.json();
-      if (json.nextStation) {
-        setNextStationSlug(json.nextStation.slug);
-        setNextStationName(json.nextStation.name);
-      } else {
+      try {
+        const res = await fetch("/api/session/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "video_completed", stationId: station.id }),
+        });
+        const json = await res.json();
+        if (json.nextStation) {
+          setNextStationSlug(json.nextStation.slug);
+          setNextStationName(json.nextStation.name);
+          return { slug: json.nextStation.slug, name: json.nextStation.name };
+        }
         setNextStationSlug("__complete__");
+        return "complete";
+      } catch {
+        setNextStationSlug("__complete__");
+        return "complete";
       }
-    } catch {
-      setNextStationSlug("__complete__");
-    }
+    })();
+
+    completionPromiseRef.current = promise;
+    return promise;
   }, [station.id, previewMode]);
 
   function handleTimeUpdate() {
@@ -108,12 +124,14 @@ export function StationVideoPlayer({
     }
   }
 
-  function handleNextClick() {
+  async function handleContinueClick() {
+    setAdvancing(true);
     trackEventClient("next_station_clicked", { stationId: station.id });
-    if (!nextStationSlug || nextStationSlug === "__complete__") {
+    const result = await completeStation();
+    if (result === "complete") {
       router.push("/complete");
     } else {
-      router.push(`/navigate/${nextStationSlug}`);
+      router.push(`/navigate/${result.slug}`);
     }
   }
 
@@ -153,12 +171,6 @@ export function StationVideoPlayer({
         הדפדפן שלכם אינו תומך בהצגת וידאו.
       </video>
 
-      {!completed && !previewMode && (
-        <Button variant="secondary" fullWidth onClick={completeStation}>
-          סיימתי, ממשיכים
-        </Button>
-      )}
-
       {completed && previewMode && (
         <Card className="flex flex-col items-center gap-3 text-center">
           <CardSubtitle>הסרטון עבר את סף הצפייה (90%) — כך ייראה למבקר בשטח.</CardSubtitle>
@@ -166,18 +178,23 @@ export function StationVideoPlayer({
       )}
 
       {completed && !previewMode && (
-        <Card className="flex flex-col items-center gap-3 text-center">
+        <Card className="flex flex-col items-center gap-2 text-center">
           <CardSubtitle>התחנה הושלמה בהצלחה!</CardSubtitle>
-          <Button onClick={handleNextClick} size="lg" fullWidth disabled={nextStationSlug === null}>
-            {nextStationSlug === null ? (
-              <Spinner />
-            ) : nextStationSlug === "__complete__" ? (
-              "לסיום הסיור 🎉"
-            ) : (
-              `ממשיכים לתחנה הבאה: ${nextStationName}`
-            )}
-          </Button>
         </Card>
+      )}
+
+      {!previewMode && (
+        <Button onClick={handleContinueClick} size="lg" fullWidth disabled={advancing}>
+          {advancing ? (
+            <Spinner />
+          ) : nextStationSlug === "__complete__" ? (
+            "לסיום הסיור 🎉"
+          ) : nextStationSlug ? (
+            `ממשיכים לתחנה הבאה: ${nextStationName}`
+          ) : (
+            "המשיכו לתחנה הבאה"
+          )}
+        </Button>
       )}
     </div>
   );
