@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
       // `station-public` Supabase Storage bucket.
       { protocol: "https", hostname: "**.supabase.co", pathname: "/storage/v1/object/public/**" },
     ],
+    // 90 is used for the full-bleed desktop hero backgrounds, which need
+    // every bit of source detail they can get since they're stretched
+    // across the whole viewport.
+    qualities: [75, 90],
   },
 };
 

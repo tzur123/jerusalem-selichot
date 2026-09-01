@@ -1,0 +1,7 @@
+fix: sharpen desktop hero backgrounds to remove blur on wide screens
+
+Source images were only 1024x576, so the desktop/tablet-landscape crop
+was being stretched across much wider viewports and looked soft. Upscale
+both wide hero backgrounds to 2560x1440 with a sharpening pass, and raise
+the rendered Image quality to 90 (added to next.config.ts qualities
+allowlist, required as of Next 16).

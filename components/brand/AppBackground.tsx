@@ -71,6 +71,7 @@ export function AppBackground({
             alt=""
             fill
             priority
+            quality={90}
             sizes="100vw"
             className="hidden object-cover object-top scale-105 landscape:block"
           />
