@@ -7,6 +7,7 @@ import { createStation, updateStation, reorderStations } from "@/lib/data/statio
 import { stationUpsertSchema, reorderSchema } from "@/lib/validation/schemas";
 import { env } from "@/lib/config/env";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getStationPublicMediaUrl } from "@/lib/media/public-url";
 
 export type LoginActionState = { error?: string } | undefined;
 
@@ -163,6 +164,35 @@ export async function createMediaUploadUrlAction(
   }
 
   return { path: data.path, token: data.token, signedUrl: data.signedUrl };
+}
+
+/**
+ * Mints a viewable URL for an already-uploaded file so the admin panel can
+ * show an actual image/video preview instead of just the raw storage path.
+ * `hero` images sit in the public bucket (stable URL, no signing needed);
+ * everything else needs a short-lived signed URL from the private bucket.
+ */
+export async function getMediaPreviewUrlAction(
+  kind: MediaKind,
+  path: string
+): Promise<{ error?: string; url?: string }> {
+  await requireAdmin();
+
+  if (kind === "hero") {
+    const url = getStationPublicMediaUrl(path);
+    return url ? { url } : { error: "לא ניתן ליצור קישור לתמונה" };
+  }
+
+  if (env.useMockBackend) {
+    return { error: "תצוגה מקדימה דורשת חיבור ל-Supabase Storage." };
+  }
+
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase.storage.from(bucketForKind(kind)).createSignedUrl(path, 3600);
+  if (error || !data) {
+    return { error: `יצירת קישור לתצוגה מקדימה נכשלה: ${error?.message ?? "שגיאה לא ידועה"}` };
+  }
+  return { url: data.signedUrl };
 }
 
 /** Persists the storage path on the station once the browser finished the direct upload. */

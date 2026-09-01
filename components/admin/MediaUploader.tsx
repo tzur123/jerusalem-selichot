@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { createMediaUploadUrlAction, finalizeMediaUploadAction } from "@/lib/admin/actions";
+import { useEffect, useRef, useState } from "react";
+import { createMediaUploadUrlAction, finalizeMediaUploadAction, getMediaPreviewUrlAction } from "@/lib/admin/actions";
 
 type Kind = "video" | "poster" | "captions" | "hero";
 
@@ -46,7 +46,29 @@ export function MediaUploader({
   const [status, setStatus] = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [savedPath, setSavedPath] = useState(currentPath);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!savedPath) {
+      queueMicrotask(() => setPreviewUrl(null));
+      return;
+    }
+    let cancelled = false;
+    getMediaPreviewUrlAction(kind, savedPath).then((res) => {
+      if (cancelled) return;
+      if (res.url) {
+        setPreviewUrl(res.url);
+        setPreviewError(null);
+      } else {
+        setPreviewError(res.error ?? "לא ניתן להציג תצוגה מקדימה");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind, savedPath]);
 
   async function handleFile(file: File) {
     setError(null);
@@ -121,9 +143,23 @@ export function MediaUploader({
       </div>
 
       {savedPath && (
-        <p className="text-xs text-white/70 break-all">
-          קובץ נוכחי: <code>{savedPath}</code>
-        </p>
+        <div className="flex flex-col gap-2">
+          {(kind === "poster" || kind === "hero") && previewUrl && (
+            /* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URLs; next/image's optimizer can't cache these usefully */
+            <img
+              src={previewUrl}
+              alt={`${LABELS[kind]} נוכחית`}
+              className="max-h-40 w-auto rounded-lg border border-white/10 object-contain"
+            />
+          )}
+          {kind === "video" && previewUrl && (
+            <video src={previewUrl} controls preload="metadata" className="max-h-56 w-full rounded-lg border border-white/10" />
+          )}
+          {previewError && <p className="text-xs text-white/40">{previewError}</p>}
+          <p className="text-xs text-white/70 break-all">
+            קובץ נוכחי: <code>{savedPath}</code>
+          </p>
+        </div>
       )}
 
       <input
