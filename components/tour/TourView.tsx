@@ -57,7 +57,7 @@ export function TourView({
 }: {
   stations: Station[];
   progress: StationProgress[];
-  session: TourSession;
+  session: TourSession | null;
 }) {
   const [selected, setSelected] = useState<Station | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -90,10 +90,10 @@ export function TourView({
     if (readyToWatch) return readyToWatch;
 
     const current =
-      ordered.find((s) => s.id === session.currentStationId && statusMap.get(s.id) !== "completed") ??
+      ordered.find((s) => s.id === session?.currentStationId && statusMap.get(s.id) !== "completed") ??
       ordered.find((s) => statusMap.get(s.id) !== "completed");
     return current ?? null;
-  }, [stations, statusMap, session.currentStationId]);
+  }, [stations, statusMap, session?.currentStationId]);
 
   const locatable = stations.filter(isLocatable);
 
