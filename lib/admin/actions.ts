@@ -76,7 +76,11 @@ export async function createStationAction(
     return { error: "יש לתקן את השדות המסומנים", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  await createStation(parsed.data);
+  try {
+    await createStation(parsed.data);
+  } catch (err) {
+    return { error: describeStationSaveError(err) };
+  }
   revalidatePath("/admin/stations");
   redirect("/admin/stations");
 }
@@ -93,12 +97,26 @@ export async function updateStationAction(
     return { error: "יש לתקן את השדות המסומנים", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  const station = await updateStation(stationId, parsed.data);
+  let station;
+  try {
+    station = await updateStation(stationId, parsed.data);
+  } catch (err) {
+    return { error: describeStationSaveError(err) };
+  }
   revalidatePath("/admin/stations");
   revalidatePath(`/admin/stations/${stationId}`);
   revalidatePath(`/places/${station.slug}`);
   revalidatePath(`/station/${station.slug}`);
   redirect("/admin/stations");
+}
+
+/** Surfaces the real Postgres/Supabase error to the admin instead of
+ * letting it throw uncaught — in production, an uncaught Server Action
+ * error is replaced by Next.js with an opaque "Minified React error #441"
+ * digest, which is useless for diagnosing e.g. a missing DB column. */
+function describeStationSaveError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  return `שמירת התחנה נכשלה: ${message}`;
 }
 
 export async function reorderStationsAction(order: { id: string; orderIndex: number }[]): Promise<void> {
@@ -157,7 +175,13 @@ export async function finalizeMediaUploadAction(
 
   const field =
     kind === "video" ? "videoPath" : kind === "poster" ? "posterPath" : kind === "hero" ? "heroImagePath" : "captionsPath";
-  const station = await updateStation(stationId, { [field]: path });
+
+  let station;
+  try {
+    station = await updateStation(stationId, { [field]: path });
+  } catch (err) {
+    return { error: describeStationSaveError(err) };
+  }
   revalidatePath(`/admin/stations/${stationId}`);
   if (kind === "hero") revalidatePath(`/places/${station.slug}`);
 
