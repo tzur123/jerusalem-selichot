@@ -79,6 +79,13 @@ export async function generateQrForStation(stationId: string): Promise<Generated
       width: 512,
       color: { dark: "#001B33", light: "#F7FBFF" },
     });
+    // Printing a new code invalidates any other still-active code for this station.
+    for (const record of mockStore.qrCodes.values()) {
+      if (record.stationId === stationId && record.isActive) {
+        record.isActive = false;
+        record.revokedAt = new Date().toISOString();
+      }
+    }
     mockStore.qrCodes.set(token, {
       id,
       stationId,
@@ -94,6 +101,15 @@ export async function generateQrForStation(stationId: string): Promise<Generated
   const hash = await hashQrToken(token, env.QR_HASH_PEPPER);
   const supabase = getSupabaseAdminClient();
 
+  // Printing a new code invalidates any other still-active code for this
+  // station — otherwise old, already-printed codes would keep working
+  // forever alongside the new one.
+  await supabase
+    .from("qr_codes")
+    .update({ is_active: false, revoked_at: new Date().toISOString() })
+    .eq("station_id", stationId)
+    .eq("is_active", true);
+
   const { data: inserted, error } = await supabase
     .from("qr_codes")
     .insert({ station_id: stationId, token_hash: hash, is_active: true })
@@ -108,15 +124,22 @@ export async function generateQrForStation(stationId: string): Promise<Generated
     const { error: uploadError } = await supabase.storage
       .from("station-videos")
       .upload(imagePath, png, { contentType: "image/png", upsert: true });
-    if (!uploadError) {
-      await supabase.from("qr_codes").update({ qr_image_path: imagePath }).eq("id", inserted.id);
+    if (uploadError) {
+      console.error("[qr] Failed to upload QR image:", uploadError.message);
+    } else {
+      const { error: updateError } = await supabase
+        .from("qr_codes")
+        .update({ qr_image_path: imagePath })
+        .eq("id", inserted.id);
+      if (updateError) console.error("[qr] Failed to persist qr_image_path:", updateError.message);
       const { data: signed } = await supabase.storage
         .from("station-videos")
         .createSignedUrl(imagePath, QR_IMAGE_TTL_SECONDS);
       qrImageUrl = signed?.signedUrl ?? null;
     }
-  } catch {
+  } catch (err) {
     // QR still works via `url` even if the persisted image render/upload failed.
+    console.error("[qr] QR image render/upload threw:", err instanceof Error ? err.message : err);
   }
 
   return { token, url, qrImageUrl };

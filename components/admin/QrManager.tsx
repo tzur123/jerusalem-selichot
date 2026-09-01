@@ -11,6 +11,31 @@ export function QrManager({ stationId, initialCodes }: { stationId: string; init
   const [latestUrl, setLatestUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload(qrImageUrl: string) {
+    setDownloading(true);
+    try {
+      // Fetching as a blob (rather than a plain <a download> to a
+      // cross-origin Supabase URL) guarantees the browser actually saves
+      // the file instead of just navigating to/opening the image.
+      const res = await fetch(qrImageUrl);
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `qr-${stationId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      window.open(qrImageUrl, "_blank");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function generate() {
     setBusy(true);
@@ -76,13 +101,14 @@ export function QrManager({ stationId, initialCodes }: { stationId: string; init
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={activeCode.qrImageUrl} alt="קוד QR להדפסה" width={200} height={200} />
           {latestUrl && <p className="text-navy text-xs break-all text-center">{latestUrl}</p>}
-          <a
-            href={activeCode.qrImageUrl}
-            download={`qr-${stationId}.png`}
-            className="text-xs font-bold text-deep-blue underline"
+          <button
+            type="button"
+            onClick={() => handleDownload(activeCode.qrImageUrl!)}
+            disabled={downloading}
+            className="text-xs font-bold text-deep-blue underline disabled:opacity-50"
           >
-            הורדת PNG להדפסה
-          </a>
+            {downloading ? "מוריד..." : "הורדת PNG להדפסה"}
+          </button>
         </div>
       ) : activeCode ? (
         <p className="text-xs text-muted rounded-2xl bg-white/5 p-4 text-center">
