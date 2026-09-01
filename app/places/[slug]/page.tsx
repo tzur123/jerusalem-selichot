@@ -78,7 +78,10 @@ export default async function StationArticlePage({ params }: { params: Promise<{
       />
 
       {heroImageUrl && (
-        <div className="relative -mx-6 sm:mx-0 aspect-[16/9] w-[calc(100%+3rem)] sm:w-full overflow-hidden rounded-none sm:rounded-3xl">
+        <div
+          className="relative -mx-6 sm:mx-0 aspect-[40/27] w-[calc(100%+3rem)] sm:w-full overflow-hidden rounded-none sm:rounded-3xl"
+          style={{ marginTop: "calc(-1 * max(2.75rem, var(--safe-top)))" }}
+        >
           <Image
             src={heroImageUrl}
             alt={article.heading}

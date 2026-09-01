@@ -6,6 +6,7 @@ import type { ProgressStatus } from "@/lib/supabase/types";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { stationImage } from "@/lib/data/station-image";
+import { getStationPublicMediaUrl } from "@/lib/media/public-url";
 
 const STATUS_LABEL: Record<ProgressStatus, string> = {
   pending: "טרם בוצע",
@@ -36,7 +37,7 @@ export function StationInfoSheet({
         station && (
           <div className="relative h-56 w-full">
             <Image
-              src={stationImage(station.orderIndex)}
+              src={getStationPublicMediaUrl(station.heroImagePath) ?? stationImage(station.orderIndex)}
               alt={station.name}
               fill
               sizes="(max-width: 512px) 100vw, 512px"
