@@ -20,7 +20,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function AccessibilityStatementPage() {
   return (
     <Screen className="gap-5" wide>
-      <header className="pt-4">
+      <header className="pt-[41px]">
         <h1 className="text-2xl md:text-3xl font-black">הצהרת נגישות</h1>
         <p className="text-muted text-sm mt-1">
           אתר &quot;סיורי סליחות בירושלים&quot; פועל להנגשת השירות הדיגיטלי לכלל הציבור, לרבות אנשים עם מוגבלות.

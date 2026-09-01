@@ -1,0 +1,10 @@
+Add breathing room under the header on info/privacy/accessibility/tour
+pages, and align the tour timer with the icon row instead of floating
+it separately
+
+Those content pages started their heading right beneath the fixed
+back/menu/mute icon cluster with barely any gap. The tour timer was a
+separately centered pill that didn't line up with the icon row and could
+visually collide with it; it's now rendered inline as the leftmost item
+in the same fixed row, at the same height, on /tour, /scan and
+/station/[slug].

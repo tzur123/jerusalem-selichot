@@ -99,7 +99,7 @@ export function TourView({
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="pt-2">
+      <header className="pt-[41px]">
         <h1 className="text-2xl font-black">מפת הסיור</h1>
         <ProgressBar completed={completedCount} total={stations.length} className="mt-3" />
       </header>

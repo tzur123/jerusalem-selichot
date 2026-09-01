@@ -6,6 +6,39 @@ import { usePathname } from "next/navigation";
 import { useSound } from "@/lib/sound/SoundProvider";
 import { HamburgerMenu } from "@/components/ui/HamburgerMenu";
 import { cn } from "@/lib/utils/cn";
+import { useTourElapsedMs } from "@/lib/tour/useTourElapsed";
+import { formatClock } from "@/lib/utils/duration";
+
+function ClockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Screens that represent an in-progress tour, where the running clock is relevant.
+ * The live navigation screen shows its own inline timer next to the map controls
+ * instead (see NavigationTimerBadge), so it's excluded here to avoid a duplicate. */
+function isOnActiveTourRoute(pathname: string): boolean {
+  return pathname === "/tour" || pathname === "/scan" || pathname.startsWith("/station/");
+}
+
+function TimerBadge() {
+  const elapsedMs = useTourElapsedMs(true);
+  if (elapsedMs == null) return null;
+  return (
+    <div
+      className="flex h-11 items-center gap-1.5 rounded-full glass-card px-3.5 text-[13px] font-bold text-gold tabular-nums"
+      role="timer"
+      aria-label={`הזמן שחלף בסיור: ${formatClock(elapsedMs)}`}
+    >
+      <ClockIcon />
+      <span aria-hidden>{formatClock(elapsedMs)}</span>
+    </div>
+  );
+}
 
 function BackIcon() {
   return (
@@ -114,6 +147,7 @@ export function FloatingControls() {
           page — back (when there's somewhere to go back to) leads, then the
           menu, then the rest. */}
       <div className="fixed top-0 right-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]">
+        {isOnActiveTourRoute(pathname) && <TimerBadge />}
         {backHref && (
           <Link href={backHref} aria-label="חזרה" title="חזרה" className={buttonClass}>
             <BackIcon />

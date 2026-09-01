@@ -50,7 +50,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function TourInfoPage() {
   return (
     <Screen className="gap-8" wide>
-      <header className="pt-4 text-center">
+      <header className="pt-[41px] text-center">
         <p className="text-xs font-bold tracking-wide text-gold uppercase">סיורי סליחות בירושלים</p>
         <h1 className="mt-2 font-heading text-2xl md:text-4xl font-bold leading-tight text-white">
           מידע כללי על הסיור
