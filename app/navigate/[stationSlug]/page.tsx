@@ -1,5 +1,6 @@
-import { getStationBySlug } from "@/lib/data/stations";
+import { getStationBySlug, getPublishedStations } from "@/lib/data/stations";
 import { isLocatable } from "@/types/station";
+import { getSessionProgress } from "@/lib/session/progress";
 import { Screen } from "@/components/brand/Screen";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Button } from "@/components/ui/Button";
@@ -47,5 +48,9 @@ export default async function NavigatePage({
     );
   }
 
-  return <Navigator station={station} />;
+  const [allStations, sessionData] = await Promise.all([getPublishedStations(), getSessionProgress()]);
+  const allLocatable = allStations.filter(isLocatable);
+  const progressByStationId = new Map(sessionData?.progress.map((p) => [p.stationId, p.status]) ?? []);
+
+  return <Navigator station={station} allStations={allLocatable} progressByStationId={progressByStationId} />;
 }

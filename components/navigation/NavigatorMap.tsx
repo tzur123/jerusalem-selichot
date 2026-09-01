@@ -3,13 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, isGoogleMapsConfigured } from "@/lib/google-maps/loader";
 import type { LatLng } from "@/lib/geo/haversine";
+import type { LocatableStation } from "@/types/station";
+import type { ProgressStatus } from "@/lib/supabase/types";
 import { Spinner } from "@/components/ui/Spinner";
+import { statusPinIcon } from "@/components/map/map-style";
 
 export type NavigatorMapHandle = {
   recenter: () => void;
 };
 
+/** Solid gold used for every not-yet-completed station pin — a flat-fill
+ * stand-in for the gradient teardrop used elsewhere, tinted with the same
+ * gold family so it still reads as "part of the set". */
+const GOLD_PIN_COLOR = "#D8B57A";
+const COMPLETED_PIN_COLOR = "#00F0A8";
+
 export function NavigatorMap({
+  stations,
+  progressByStationId,
   destination,
   polyline,
   userPosition,
@@ -19,6 +30,10 @@ export function NavigatorMap({
   onUserDrag,
   className,
 }: {
+  /** All published, locatable stations — always rendered as numbered pins,
+   * regardless of which one is the current navigation target. */
+  stations: LocatableStation[];
+  progressByStationId?: Map<string, ProgressStatus>;
   destination: LatLng;
   polyline: LatLng[];
   userPosition: LatLng | null;
@@ -32,7 +47,7 @@ export function NavigatorMap({
   const mapInstance = useRef<google.maps.Map | null>(null);
   const polylineInstance = useRef<google.maps.Polyline | null>(null);
   const userMarker = useRef<google.maps.Marker | null>(null);
-  const destMarker = useRef<google.maps.Marker | null>(null);
+  const stationMarkers = useRef<google.maps.Marker[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(() =>
     isGoogleMapsConfigured() ? "loading" : "error"
   );
@@ -53,17 +68,16 @@ export function NavigatorMap({
           styles: NAV_MAP_STYLE,
         });
 
-        destMarker.current = new google.maps.Marker({
-          position: destination,
-          map: mapInstance.current,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: "#00F0A8",
-            fillOpacity: 1,
-            strokeColor: "#F7FBFF",
-            strokeWeight: 2,
-            scale: 12,
-          },
+        stationMarkers.current = stations.map((station) => {
+          const isCompleted = progressByStationId?.get(station.id) === "completed";
+          return new google.maps.Marker({
+            position: { lat: station.latitude, lng: station.longitude },
+            map: mapInstance.current!,
+            icon: statusPinIcon(google, station.orderIndex, isCompleted ? COMPLETED_PIN_COLOR : GOLD_PIN_COLOR),
+            title: station.name,
+            optimized: false,
+            zIndex: isCompleted ? 500 : 600,
+          });
         });
 
         mapInstance.current.addListener("dragstart", () => onUserDrag?.());

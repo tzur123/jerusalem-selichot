@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { LocatableStation } from "@/types/station";
+import type { ProgressStatus } from "@/lib/supabase/types";
 import { haversineDistanceMeters, AVERAGE_WALKING_SPEED_MPS, type LatLng } from "@/lib/geo/haversine";
 import {
   distanceToPolylineMeters,
@@ -36,7 +37,16 @@ type Phase = "locating" | "routing" | "active" | "location-error" | "route-error
 
 const STEP_ADVANCE_THRESHOLD_M = 18;
 
-export function Navigator({ station }: { station: LocatableStation }) {
+export function Navigator({
+  station,
+  allStations,
+  progressByStationId,
+}: {
+  station: LocatableStation;
+  /** Every published, locatable station — always shown as pins on the map. */
+  allStations: LocatableStation[];
+  progressByStationId?: Map<string, ProgressStatus>;
+}) {
   const router = useRouter();
   const destination = useMemo<LatLng>(
     () => ({ lat: station.latitude, lng: station.longitude }),
@@ -265,6 +275,8 @@ export function Navigator({ station }: { station: LocatableStation }) {
   return (
     <div id="main-content" className="relative flex-1 min-h-dvh-safe flex flex-col">
       <NavigatorMap
+        stations={allStations}
+        progressByStationId={progressByStationId}
         destination={destination}
         polyline={route?.polyline ?? [destination]}
         userPosition={userPosition ? { lat: userPosition.lat, lng: userPosition.lng } : null}
