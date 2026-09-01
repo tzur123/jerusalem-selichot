@@ -147,7 +147,6 @@ export function FloatingControls() {
           page — back (when there's somewhere to go back to) leads, then the
           menu, then the rest. */}
       <div className="fixed top-0 right-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[max(0.75rem,var(--safe-top))]">
-        {isOnActiveTourRoute(pathname) && <TimerBadge />}
         {backHref && (
           <Link href={backHref} aria-label="חזרה" title="חזרה" className={buttonClass}>
             <BackIcon />
@@ -169,6 +168,7 @@ export function FloatingControls() {
             <MapIcon />
           </Link>
         )}
+        {isOnActiveTourRoute(pathname) && <TimerBadge />}
       </div>
     </>
   );
