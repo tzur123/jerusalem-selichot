@@ -115,8 +115,10 @@ export function FloatingControls() {
   // The admin panel has its own chrome; keep it clean.
   if (pathname.startsWith("/admin")) return null;
 
-  // On the immersive navigation screen we already have dedicated controls.
-  const hideMap = pathname === "/tour" || pathname.startsWith("/navigate");
+  // Only hide the "go to tour map" icon while already on that page — every
+  // other screen, including the immersive navigation view, should still
+  // offer a quick way back to the map.
+  const hideMap = pathname === "/tour";
   const backHref = getBackHref(pathname);
   const isLanding = pathname === "/";
 
