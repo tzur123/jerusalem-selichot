@@ -16,6 +16,16 @@ const BACKGROUNDS = {
   archway: "/backgrounds/bg-alley-3.png",
 } as const;
 
+/**
+ * Wide (16:9) alternates of the two hero photos, framed for desktop/tablet
+ * and landscape phones — the portrait originals above are cropped too
+ * tightly once the viewport gets wider than it is tall.
+ */
+const WIDE_BACKGROUNDS: Partial<Record<BackgroundVariant, string>> = {
+  gate: "/backgrounds/bg-gate-hero-wide.png",
+  citadel: "/backgrounds/bg-citadel-hero-wide.png",
+};
+
 export type BackgroundVariant = keyof typeof BACKGROUNDS;
 
 /**
@@ -38,17 +48,43 @@ export function AppBackground({
   const isStart = pathname === "/start";
   const showPhotoPlain = isLanding || isStart;
   const resolvedVariant = variant ?? (isLanding ? "gate" : isStart ? "citadel" : "moonlit");
+  const wideSrc = WIDE_BACKGROUNDS[resolvedVariant];
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy a11y-hide-in-contrast" aria-hidden>
-      <Image
-        src={BACKGROUNDS[resolvedVariant]}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-top scale-105"
-      />
+      {wideSrc ? (
+        <>
+          {/* Portrait crop: phones/tablets held upright (viewport taller than wide). */}
+          <Image
+            src={BACKGROUNDS[resolvedVariant]}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-top scale-105 landscape:hidden"
+          />
+          {/* Wide 16:9 crop: desktop, and any device wider than it is tall
+              (tablet/phone landscape) — orientation media query, not a width
+              breakpoint, so it also catches landscape phones at small widths. */}
+          <Image
+            src={wideSrc}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="hidden object-cover object-top scale-105 landscape:block"
+          />
+        </>
+      ) : (
+        <Image
+          src={BACKGROUNDS[resolvedVariant]}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-top scale-105"
+        />
+      )}
       {/* The landing and start pages show their hero photo untouched — no scrim/grain on top. */}
       {!showPhotoPlain && (
         <>
