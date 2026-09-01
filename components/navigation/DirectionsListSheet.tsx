@@ -2,8 +2,9 @@
 
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { cn } from "@/lib/utils/cn";
+import { directionRotationDeg } from "@/lib/navigation/direction-icon";
 
-type DirectionStep = { instruction: string; distanceMeters: number };
+type DirectionStep = { instruction: string; distanceMeters: number; maneuver: string };
 
 function formatMeters(meters: number): string {
   if (meters < 1000) return `${Math.round(meters)} מ׳`;
@@ -43,7 +44,12 @@ export function DirectionsListSheet({
                 )}
                 aria-hidden
               >
-                ↰
+                <span
+                  className="inline-block"
+                  style={{ transform: `rotate(${directionRotationDeg(step.maneuver, step.instruction)}deg)` }}
+                >
+                  ↑
+                </span>
               </span>
               <div className="flex-1">
                 <p className="text-sm font-bold text-white leading-snug">{step.instruction}</p>

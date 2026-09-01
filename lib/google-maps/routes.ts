@@ -12,6 +12,10 @@ export type WalkingRoute = {
     distanceMeters: number;
     start: LatLng;
     end: LatLng;
+    /** Google's maneuver hint (e.g. "turn-left", "turn-slight-right",
+     * "straight") — empty on the first ("depart") step. Drives which way
+     * the arrow icon points, independent of the instruction's language. */
+    maneuver: string;
   }>;
 };
 
@@ -60,6 +64,7 @@ export async function computeWalkingRoute(origin: LatLng, destination: LatLng): 
     distanceMeters: step.distance?.value ?? 0,
     start: { lat: step.start_location.lat(), lng: step.start_location.lng() },
     end: { lat: step.end_location.lat(), lng: step.end_location.lng() },
+    maneuver: step.maneuver ?? "",
   }));
 
   return {

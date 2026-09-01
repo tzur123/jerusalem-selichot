@@ -31,6 +31,7 @@ import { RouteProgress } from "./RouteProgress";
 import { NavControlButton } from "./NavControls";
 import { NavigationTimerBadge } from "./NavigationTimerBadge";
 import { DirectionsListSheet } from "./DirectionsListSheet";
+import { CompassSheet } from "./CompassSheet";
 import { ArrivalSheet } from "./ArrivalSheet";
 
 type Phase = "locating" | "routing" | "active" | "location-error" | "route-error";
@@ -63,6 +64,7 @@ export function Navigator({
   const [usingStraightLineFallback, setUsingStraightLineFallback] = useState(false);
   const [directionsOpen, setDirectionsOpen] = useState(false);
   const [compassNotice, setCompassNotice] = useState<string | null>(null);
+  const [compassOpen, setCompassOpen] = useState(false);
 
   // Mirrors of the state above, readable synchronously from the geolocation
   // watch callback below without re-subscribing watchPosition on every change.
@@ -100,6 +102,7 @@ export function Navigator({
               distanceMeters: haversineDistanceMeters(origin, destination),
               start: origin,
               end: destination,
+              maneuver: "straight",
             },
           ],
         };
@@ -216,15 +219,25 @@ export function Navigator({
     window.open(buildGoogleMapsWalkingUrl(destination), "_blank", "noopener,noreferrer");
   }, [destination, station.id]);
 
-  const handleEnableCompass = useCallback(async () => {
+  // Tapping the compass button both requests device-orientation permission
+  // (once) and opens a live rotating compass dial — previously it only did
+  // the former, which silently did nothing visible.
+  const handleCompassClick = useCallback(async () => {
+    if (compass.heading != null) {
+      setCompassOpen(true);
+      return;
+    }
     const result = await compass.enable();
     if (result === "unsupported") {
       setCompassNotice("המצפן אינו נתמך במכשיר הזה — הכיוון ימשיך להתעדכן לפי תנועת ההליכה בלבד.");
-    } else if (result === "denied") {
-      setCompassNotice("הגישה למצפן לא אושרה. ניתן לאשר אותה בהגדרות הפרטיות/האתר בדפדפן ולנסות שוב.");
-    } else {
-      setCompassNotice(null);
+      return;
     }
+    if (result === "denied") {
+      setCompassNotice("הגישה למצפן לא אושרה. ניתן לאשר אותה בהגדרות הפרטיות/האתר בדפדפן ולנסות שוב.");
+      return;
+    }
+    setCompassNotice(null);
+    setCompassOpen(true);
   }, [compass]);
 
   useEffect(() => {
@@ -296,6 +309,7 @@ export function Navigator({
           {route && route.steps[stepIndex] && (
             <NavigationInstructionCard
               instruction={route.steps[stepIndex].instruction}
+              maneuver={route.steps[stepIndex].maneuver}
               distanceToNextMeters={
                 userPosition
                   ? haversineDistanceMeters(
@@ -328,7 +342,7 @@ export function Navigator({
           >
             🎯
           </NavControlButton>
-          <NavControlButton onClick={handleEnableCompass} label="הפעלת מצפן" active={Boolean(compass.heading)}>
+          <NavControlButton onClick={handleCompassClick} label="פתיחת מצפן" active={Boolean(compass.heading)}>
             🧭
           </NavControlButton>
         </div>
@@ -355,6 +369,8 @@ export function Navigator({
         steps={route?.steps ?? []}
         currentStepIndex={stepIndex}
       />
+
+      <CompassSheet open={compassOpen} onClose={() => setCompassOpen(false)} heading={compass.heading} />
 
       <ArrivalSheet
         open={arrived}
