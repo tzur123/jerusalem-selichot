@@ -71,11 +71,10 @@ export default async function LandingPage() {
         <Logo size="lg" />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-3 translate-y-[calc(25%+25px)] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
-        <h1 className="text-4xl md:text-6xl font-heading font-bold leading-tight text-white translate-y-[10px]">
-          5 תחנות. סיפור אחד.
-          <br />
-          <span className="text-gradient-gold">אל שערי הסליחות</span>
+      <section className="flex flex-col items-center text-center gap-3 mt-16 drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
+        <h1 className="flex flex-col items-center font-heading font-bold leading-tight text-white translate-y-[10px]">
+          <span className="text-xl md:text-3xl whitespace-nowrap">5 תחנות. סיפור אחד.</span>
+          <span className="text-4xl md:text-6xl text-gradient-gold whitespace-nowrap">אל שערי הסליחות</span>
         </h1>
         <p className="text-muted text-base md:text-lg max-w-sm md:max-w-md">
           סיור לילי ברגל בין חמש נקודות בירושלים - בלי קבוצה ובלי מדריך.
