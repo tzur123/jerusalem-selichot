@@ -28,15 +28,15 @@ function CheckIcon() {
   );
 }
 
-const TOGGLES: { key: A11yToggleKey; label: string; hint: string }[] = [
-  { key: "highContrast", label: "ניגודיות גבוהה", hint: "רקע שחור וטקסט בניגודיות מרבית" },
-  { key: "underlineLinks", label: "קו תחתון לקישורים", hint: "מסמן קישורים גם בלי צבע" },
-  { key: "readableFont", label: "גופן קריא", hint: "מחליף לגופן פשוט וברור" },
-  { key: "textSpacing", label: "ריווח טקסט מוגבר", hint: "רווח שורות ואותיות גדול יותר" },
-  { key: "grayscale", label: "גווני אפור", hint: "מסיר צבעים מהעמוד" },
-  { key: "reduceMotion", label: "עצירת אנימציות", hint: "מבטל תנועה ומעברים" },
-  { key: "bigCursor", label: "סמן עכבר מוגדל", hint: "סמן גדול וברור יותר" },
-  { key: "strongFocus", label: "הדגשת פוקוס למקלדת", hint: "מסגרת בולטת סביב האלמנט הפעיל" },
+const TOGGLES: { key: A11yToggleKey; label: string }[] = [
+  { key: "highContrast", label: "ניגודיות גבוהה" },
+  { key: "underlineLinks", label: "קו תחתון לקישורים" },
+  { key: "readableFont", label: "גופן קריא" },
+  { key: "textSpacing", label: "ריווח טקסט מוגבר" },
+  { key: "grayscale", label: "גווני אפור" },
+  { key: "reduceMotion", label: "עצירת אנימציות" },
+  { key: "bigCursor", label: "סמן עכבר מוגדל" },
+  { key: "strongFocus", label: "הדגשת פוקוס למקלדת" },
 ];
 
 export function AccessibilityWidget() {
@@ -93,7 +93,7 @@ export function AccessibilityWidget() {
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
-            {TOGGLES.map(({ key, label, hint }) => {
+            {TOGGLES.map(({ key, label }) => {
               const active = settings[key];
               return (
                 <button
@@ -102,22 +102,19 @@ export function AccessibilityWidget() {
                   onClick={() => toggle(key)}
                   aria-pressed={active}
                   className={cn(
-                    "text-right rounded-2xl p-3 flex flex-col gap-1 border transition-colors",
+                    "text-right rounded-2xl p-3 flex items-center justify-between gap-2 border transition-colors",
                     active ? "bg-mint/15 border-mint/60" : "glass-button border-white/15"
                   )}
                 >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-bold">{label}</span>
-                    <span
-                      className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-                        active ? "bg-mint text-navy border-mint" : "border-white/25 text-transparent"
-                      )}
-                    >
-                      <CheckIcon />
-                    </span>
+                  <span className="text-sm font-bold">{label}</span>
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+                      active ? "bg-mint text-navy border-mint" : "border-white/25 text-transparent"
+                    )}
+                  >
+                    <CheckIcon />
                   </span>
-                  <span className="text-xs text-muted leading-snug">{hint}</span>
                 </button>
               );
             })}
