@@ -124,7 +124,7 @@ export function AppBackground({
               playsInline
               preload="auto"
               poster={wideSrc}
-              className="app-bg-video absolute inset-0 hidden h-full w-full object-cover object-top scale-105 md:landscape:block"
+              className="app-bg-video absolute inset-0 hidden h-full w-full object-cover object-center md:landscape:block"
             >
               <source src={desktopVideoSrc.webm} type="video/webm" />
               <source src={desktopVideoSrc.mp4} type="video/mp4" />
