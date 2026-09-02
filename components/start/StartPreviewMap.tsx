@@ -99,22 +99,27 @@ export function StartPreviewMap({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-[28px] ring-[3px] ring-[#e7d8ae]/70 shadow-[0_20px_50px_-18px_rgba(0,0,0,0.75),inset_0_0_46px_14px_rgba(80,58,20,0.4)]"
+      className="relative w-full rounded-[30px] bg-gradient-to-br from-[#f1e6c8] via-[#e3cd9a] to-[#c3a06a] p-[9px] shadow-[0_20px_50px_-18px_rgba(0,0,0,0.75)]"
       style={{ height: "30vh" }}
     >
-      {status === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center glass-card rounded-none">
-          <Spinner />
-        </div>
-      )}
-      <div ref={mapRef} className="h-full w-full" style={{ display: status === "ready" ? "block" : "none" }} />
+      {/* Aged-parchment mat, like an old map mounted in a paper frame - visible
+          no matter what renders inside the window (map tiles or fallback). */}
+      <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.35] mix-blend-multiply [background-image:radial-gradient(rgba(90,65,25,0.5)_1px,transparent_1px)] [background-size:2.5px_2.5px]" />
+      <div className="pointer-events-none absolute inset-0 rounded-[30px] shadow-[inset_0_0_18px_6px_rgba(80,55,20,0.35)]" />
 
-      {/* Aged-paper vignette + hairline - a nod to an old cut-paper map without
-          touching Google's own tile styling (which is what actually renders). */}
-      <div className="pointer-events-none absolute inset-0 rounded-[28px] ring-1 ring-inset ring-gold/25" />
-      <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-[0.08] mix-blend-overlay [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:3px_3px]" />
+      <div className="relative h-full w-full overflow-hidden rounded-[22px] ring-1 ring-black/25">
+        {status === "loading" && (
+          <div className="absolute inset-0 flex items-center justify-center glass-card rounded-none">
+            <Spinner />
+          </div>
+        )}
+        <div ref={mapRef} className="h-full w-full" style={{ display: status === "ready" ? "block" : "none" }} />
 
-      {selected && (
+        {/* Sepia vignette over the map window itself, so the paper feel carries
+            through onto the tiles too. */}
+        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_50px_16px_rgba(70,50,20,0.45)]" />
+
+        {selected && (
         <div className="absolute inset-x-2 bottom-2 z-10">
           <Card className="flex gap-2.5 p-2.5 !rounded-2xl">
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-1 ring-gold/30">
@@ -138,27 +143,28 @@ export function StartPreviewMap({
                   disabled={pendingId !== null}
                   className="flex flex-1 items-center justify-center rounded-xl glass-button border border-gold/40 px-2 py-1.5 text-xs font-bold text-white hover:border-gold disabled:opacity-50"
                 >
-                  {pendingId === selected.id ? <Spinner /> : "????? ???"}
+                  {pendingId === selected.id ? <Spinner /> : "\u05e0\u05d5\u05d5\u05d8\u05d5 \u05dc\u05e9\u05dd"}
                 </button>
                 <Link
                   href={`/station/${selected.slug}`}
                   className="flex flex-1 items-center justify-center rounded-xl bg-gradient-to-b from-mint to-[#00d494] px-2 py-1.5 text-center text-xs font-bold text-navy"
                 >
-                  ?????? ????
+                  {"\u05dc\u05e6\u05e4\u05d9\u05d9\u05d4 \u05d1\u05e1\u05e8\u05d8"}
                 </Link>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setSelected(null)}
-              aria-label="?????"
+              aria-label={"\u05e1\u05d2\u05d9\u05e8\u05d4"}
               className="self-start p-1 text-white/60 transition-colors hover:text-white"
             >
               <CloseIcon />
             </button>
           </Card>
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
