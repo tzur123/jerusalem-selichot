@@ -28,11 +28,11 @@ const WIDE_BACKGROUNDS: Partial<Record<BackgroundVariant, string>> = {
 
 /**
  * Looping ambient clip shown instead of the static photo on phones — desktop,
- * tablets and landscape phones keep the (much cheaper) still image. Only the
- * landing page has one so far.
+ * tablets and landscape phones keep the (much cheaper) still image.
  */
 const MOBILE_VIDEO_BACKGROUNDS: Partial<Record<BackgroundVariant, string>> = {
   gate: "/backgrounds/hero-mobile-video.mp4",
+  citadel: "/backgrounds/start-mobile-video.mp4",
 };
 
 /**
