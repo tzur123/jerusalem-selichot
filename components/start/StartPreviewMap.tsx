@@ -77,7 +77,9 @@ export function StartPreviewMap({
         if (locatable.length > 1) {
           const bounds = new google.maps.LatLngBounds();
           locatable.forEach((s) => bounds.extend({ lat: s.latitude, lng: s.longitude }));
-          map.fitBounds(bounds, 36);
+          // Extra padding pulls the camera back a touch further than a tight
+          // fit would, so every pin sits comfortably inside the frame.
+          map.fitBounds(bounds, 64);
         }
 
         setStatus("ready");
@@ -100,7 +102,7 @@ export function StartPreviewMap({
   return (
     <div
       className="relative w-full rounded-[30px] bg-gradient-to-br from-[#f1e6c8] via-[#e3cd9a] to-[#c3a06a] p-[9px] shadow-[0_20px_50px_-18px_rgba(0,0,0,0.75)]"
-      style={{ height: "24vh" }}
+      style={{ height: "28.8vh" }}
     >
       {/* Aged-parchment mat, like an old map mounted in a paper frame - visible
           no matter what renders inside the window (map tiles or fallback). */}
