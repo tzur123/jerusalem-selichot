@@ -215,6 +215,10 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+
+  .app-bg-video {
+    display: none !important;
+  }
 }
 
 /* ============================================================
@@ -307,6 +311,10 @@ html.a11y-reduce-motion *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
+}
+
+html.a11y-reduce-motion .app-bg-video {
+  display: none !important;
 }
 
 /* --- Oversized cursor --- */

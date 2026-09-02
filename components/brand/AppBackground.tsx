@@ -26,6 +26,15 @@ const WIDE_BACKGROUNDS: Partial<Record<BackgroundVariant, string>> = {
   citadel: "/backgrounds/bg-citadel-hero-wide.png",
 };
 
+/**
+ * Looping ambient clip shown instead of the static photo on phones — desktop,
+ * tablets and landscape phones keep the (much cheaper) still image. Only the
+ * landing page has one so far.
+ */
+const MOBILE_VIDEO_BACKGROUNDS: Partial<Record<BackgroundVariant, string>> = {
+  gate: "/backgrounds/hero-mobile-video.mp4",
+};
+
 export type BackgroundVariant = keyof typeof BACKGROUNDS;
 
 /**
@@ -49,12 +58,14 @@ export function AppBackground({
   const showPhotoPlain = isLanding || isStart;
   const resolvedVariant = variant ?? (isLanding ? "gate" : isStart ? "citadel" : "moonlit");
   const wideSrc = WIDE_BACKGROUNDS[resolvedVariant];
+  const mobileVideoSrc = MOBILE_VIDEO_BACKGROUNDS[resolvedVariant];
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy a11y-hide-in-contrast" aria-hidden>
       {wideSrc ? (
         <>
-          {/* Portrait crop: phones/tablets held upright (viewport taller than wide). */}
+          {/* Portrait crop: phones/tablets held upright (viewport taller than wide).
+              Also doubles as the poster/fallback behind the phone video below. */}
           <Image
             src={BACKGROUNDS[resolvedVariant]}
             alt=""
@@ -63,6 +74,21 @@ export function AppBackground({
             sizes="100vw"
             className="object-cover object-top scale-105 landscape:hidden"
           />
+          {/* Looping video, phones only (md: and up, and landscape, keep the
+              still image — cheaper, and desktop/tablet don't need the motion). */}
+          {mobileVideoSrc && (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster={BACKGROUNDS[resolvedVariant]}
+              className="app-bg-video absolute inset-0 h-full w-full object-cover object-top scale-105 landscape:hidden md:hidden"
+            >
+              <source src={mobileVideoSrc} type="video/mp4" />
+            </video>
+          )}
           {/* Wide 16:9 crop: desktop, and any device wider than it is tall
               (tablet/phone landscape) — orientation media query, not a width
               breakpoint, so it also catches landscape phones at small widths. */}
