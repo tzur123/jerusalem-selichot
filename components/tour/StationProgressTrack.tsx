@@ -61,6 +61,19 @@ export function StationProgressTrack({
         >
           {pct > 0 && <div className="track-shimmer absolute inset-0" />}
         </div>
+        {/* Small end-cap dots so the line always reads as a designed track,
+            even before any station is completed. */}
+        <span
+          className="absolute right-0 top-6 h-2 w-2 -translate-y-1/2 translate-x-1/2 rounded-full bg-gold shadow-[0_0_8px_-1px_rgba(232,200,135,0.9)] ring-2 ring-navy"
+          aria-hidden
+        />
+        <span
+          className={cn(
+            "absolute left-0 top-6 h-2 w-2 -translate-y-1/2 -translate-x-1/2 rounded-full ring-2 ring-navy transition-colors duration-500",
+            pct >= 100 ? "bg-mint shadow-[0_0_8px_-1px_rgba(0,240,168,0.9)]" : "bg-white/25"
+          )}
+          aria-hidden
+        />
 
         {ordered.map((station) => {
           const status = statusMap.get(station.id) ?? "pending";
