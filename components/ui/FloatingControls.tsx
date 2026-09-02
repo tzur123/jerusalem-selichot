@@ -142,7 +142,7 @@ export function FloatingControls() {
           width={753}
           height={400}
           priority={isLanding}
-          className={cn("h-auto", isLanding ? "w-[140px]" : "w-[112px]")}
+          className={cn("h-auto", isLanding ? "w-[140px]" : "w-[112px] md:w-[168px]")}
         />
       </Link>
 
