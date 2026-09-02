@@ -6,7 +6,7 @@ import type { Station } from "@/types/station";
 import { isLocatable } from "@/types/station";
 import type { StationProgress, TourSession } from "@/types/session";
 import type { ProgressStatus } from "@/lib/supabase/types";
-import { ProgressBar } from "@/components/ui/ProgressBar";
+import { StationProgressTrack } from "@/components/tour/StationProgressTrack";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -79,8 +79,6 @@ export function TourView({
     return map;
   }, [stations, progressByStationId]);
 
-  const completedCount = stations.filter((s) => statusMap.get(s.id) === "completed").length;
-
   const primaryStation = useMemo(() => {
     const ordered = [...stations].sort((a, b) => a.orderIndex - b.orderIndex);
     const readyToWatch = ordered.find((s) => {
@@ -101,7 +99,7 @@ export function TourView({
     <div className="flex flex-col gap-5">
       <header className="pt-[41px]">
         <h1 className="text-2xl font-black">מפת הסיור</h1>
-        <ProgressBar completed={completedCount} total={stations.length} className="mt-3" />
+        <StationProgressTrack stations={stations} statusMap={statusMap} className="mt-4" />
       </header>
 
       <TourMap

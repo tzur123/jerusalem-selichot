@@ -1,0 +1,8 @@
+Replace tour progress bar with a circular station "trail" tracker
+
+- New StationProgressTrack: a stepper-style row of station avatars linked
+  by a fill line, replacing the plain linear percentage bar on /tour
+- Completed stations light up with the station's real photo, a mint ring,
+  and a checkmark, plus the station name underneath
+- The current/arrived station gets a gold ring to show where you are
+- Untouched stations stay dimmed with just their number, no photo
