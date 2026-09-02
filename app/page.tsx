@@ -60,7 +60,7 @@ export default async function LandingPage() {
   };
 
   return (
-    <Screen className="justify-between gap-10">
+    <Screen className="!pb-[max(20px,var(--safe-bottom))]">
       <TrackOnMount name="landing_viewed" />
       <script
         type="application/ld+json"
@@ -71,25 +71,32 @@ export default async function LandingPage() {
         <Logo size="lg" />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-3 mt-[340px] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
-        <h1 className="flex flex-col items-center font-heading font-bold leading-tight text-white translate-y-[10px]">
-          <span className="text-4xl md:text-6xl whitespace-nowrap">5 תחנות. סיפור אחד.</span>
-          <span className="text-4xl md:text-6xl text-gradient-gold whitespace-nowrap">אל שערי הסליחות</span>
-        </h1>
-        <p className="text-muted text-base md:text-lg max-w-sm md:max-w-md">
-          סיור לילי ברגל בין חמש נקודות בירושלים - בלי קבוצה ובלי מדריך.
-          רק אתם, האבנים העתיקות, ולילה שמתעורר לקראת הסליחות.
-        </p>
-      </section>
+      {/* Pushed to the very bottom of the screen (mt-auto absorbs whatever
+          space is left below the logo) instead of a fixed pixel offset —
+          keeps everything on one screen with no scroll, on every viewport
+          height, with the button always exactly Screen's bottom padding
+          above the safe area. */}
+      <div className="mt-auto flex flex-col gap-8">
+        <section className="flex flex-col items-center text-center gap-3 drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
+          <h1 className="flex flex-col items-center font-heading font-bold leading-tight text-white translate-y-[10px]">
+            <span className="text-4xl md:text-6xl whitespace-nowrap">5 תחנות. סיפור אחד.</span>
+            <span className="text-4xl md:text-6xl text-gradient-gold whitespace-nowrap">אל שערי הסליחות</span>
+          </h1>
+          <p className="text-muted text-base md:text-lg max-w-sm md:max-w-md">
+            סיור לילי ברגל בין חמש נקודות בירושלים - בלי קבוצה ובלי מדריך.
+            רק אתם, האבנים העתיקות, ולילה שמתעורר לקראת הסליחות.
+          </p>
+        </section>
 
-      <section className="flex flex-col gap-4">
-        <Button href="/start" size="lg" fullWidth className="pulse-cta">
-          מתחילים את הסיור
-          <ArrowIcon />
-        </Button>
+        <section className="flex flex-col gap-4">
+          <Button href="/start" size="lg" fullWidth className="pulse-cta">
+            מתחילים את הסיור
+            <ArrowIcon />
+          </Button>
 
-        <HowItWorks />
-      </section>
+          <HowItWorks />
+        </section>
+      </div>
     </Screen>
   );
 }
