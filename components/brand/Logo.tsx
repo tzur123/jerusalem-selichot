@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 
 export function Logo({ className, size = "md" }: { className?: string; size?: "md" | "lg" }) {
@@ -6,16 +7,20 @@ export function Logo({ className, size = "md" }: { className?: string; size?: "m
   // smaller chrome placements (admin header/login) keep the plain text mark.
   if (size === "lg") {
     return (
-      <div className={cn("flex items-center justify-center select-none", className)}>
+      <Link
+        href="/"
+        aria-label="סליחות ירושלים — לדף הבית"
+        className={cn("flex items-center justify-center select-none", className)}
+      >
         <Image
           src="/brand/logo-selichot-wordmark.png"
           alt="סליחות ירושלים"
           width={953}
           height={557}
           priority
-          className="h-auto w-[184px]"
+          className="h-auto w-[184px] md:w-[239px]"
         />
-      </div>
+      </Link>
     );
   }
 
