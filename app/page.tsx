@@ -82,7 +82,7 @@ export default async function LandingPage() {
             <span className="text-4xl md:text-6xl whitespace-nowrap">5 תחנות. סיפור אחד.</span>
             <span className="text-4xl md:text-6xl text-gradient-gold whitespace-nowrap">אל שערי הסליחות</span>
           </h1>
-          <p className="text-muted text-base md:text-lg max-w-sm md:max-w-md">
+          <p className="text-white text-base md:text-lg max-w-sm md:max-w-md">
             סיור לילי ברגל בין חמש נקודות בירושלים - בלי קבוצה ובלי מדריך.
             רק אתם, האבנים העתיקות, ולילה שמתעורר לקראת הסליחות.
           </p>
