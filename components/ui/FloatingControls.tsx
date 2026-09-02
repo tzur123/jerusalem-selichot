@@ -102,6 +102,7 @@ function getBackHref(pathname: string): string | null {
   if (pathname === "/scan") return "/tour";
   if (pathname === "/complete") return "/tour";
   if (pathname.startsWith("/station/")) return "/tour";
+  if (pathname.startsWith("/route/")) return "/start";
   if (pathname.startsWith("/navigate/")) return "/tour";
   if (pathname.startsWith("/places/")) return "/info";
   if (pathname === "/offline") return "/";

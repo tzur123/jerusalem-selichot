@@ -142,7 +142,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ startMode, startStationId: station.id }),
       });
-      router.push(`/navigate/${station.slug}`);
+      router.push(`/route/${station.slug}`);
     } catch {
       setPending(null);
     }
