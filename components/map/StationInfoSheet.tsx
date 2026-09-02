@@ -27,8 +27,6 @@ export function StationInfoSheet({
   open: boolean;
   onClose: () => void;
 }) {
-  const unlocked = status === "unlocked" || status === "watching" || status === "completed";
-
   return (
     <BottomSheet
       open={open}
@@ -63,14 +61,12 @@ export function StationInfoSheet({
           {station.address && <p className="text-xs text-white/50">{station.address}</p>}
 
           <div className="flex flex-col gap-2 pt-1">
-            <Button href={`/navigate/${station.slug}`} size="lg" fullWidth>
+            <Button href={`/station/${station.slug}`} size="lg" fullWidth>
+              צפו בסרטון
+            </Button>
+            <Button href={`/navigate/${station.slug}`} variant="secondary" fullWidth>
               נווטו לתחנה
             </Button>
-            {unlocked && (
-              <Button href={`/station/${station.slug}`} variant="secondary" fullWidth>
-                צפו בסרטון
-              </Button>
-            )}
           </div>
         </div>
       )}

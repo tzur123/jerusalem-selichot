@@ -33,26 +33,14 @@ export default async function StationPage({ params }: { params: Promise<{ slug: 
     );
   }
 
+  // The video is intentionally open to everyone — no QR scan or physical
+  // arrival required. `isAdminPreview` still exists purely so an admin
+  // clicking "preview" from /admin doesn't pollute this visitor's real
+  // progress/analytics; regular visitors always get full, tracked access.
   const sessionData = await getSessionProgress();
   const progress = sessionData?.progress.find((p) => p.stationId === station.id);
   const isUnlocked = progress && ["unlocked", "watching", "completed"].includes(progress.status);
   const isAdminPreview = !isUnlocked && Boolean(await getAdminSession());
-
-  if (!isUnlocked && !isAdminPreview) {
-    return (
-      <Screen>
-        <ErrorState
-          title="התחנה עדיין נעולה"
-          description="כדי לפתוח את התחנה, הגיעו למקום וסרקו את קוד ה-QR הפיזי."
-          secondaryAction={
-            <Button href={`/navigate/${station.slug}`} variant="secondary" fullWidth>
-              נווטו לתחנה
-            </Button>
-          }
-        />
-      </Screen>
-    );
-  }
 
   const justUnlocked = progress?.status === "unlocked";
   const isFinalStation = justUnlocked
@@ -65,7 +53,7 @@ export default async function StationPage({ params }: { params: Promise<{ slug: 
 
       {isAdminPreview && (
         <div className="rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2 text-center text-xs font-bold text-gold">
-          תצוגה מקדימה למנהל — התחנה עדיין נעולה למבקרים רגילים
+          תצוגה מקדימה למנהל — לא נרשם כביקור בסטטיסטיקות
         </div>
       )}
 

@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/config/env";
 import { getStationBySlug } from "@/lib/data/stations";
-import { getSessionProgress } from "@/lib/session/progress";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getAdminSession } from "@/lib/admin/auth";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
-const UNLOCKED_STATUSES = new Set(["unlocked", "watching", "completed"]);
 
 // Public domain sample video used only when Supabase Storage isn't configured,
 // so the player UI can be reviewed end-to-end locally.
@@ -22,17 +19,9 @@ export async function GET(_request: Request, ctx: { params: Promise<{ slug: stri
     return NextResponse.json({ error: "Station not found" }, { status: 404 });
   }
 
-  const sessionData = await getSessionProgress();
-  const progress = sessionData?.progress.find((p) => p.stationId === station.id);
-  const isAdminPreview = Boolean(await getAdminSession());
-
-  if (!isAdminPreview && (!progress || !UNLOCKED_STATUSES.has(progress.status))) {
-    return NextResponse.json(
-      { error: "Station is locked. Scan the QR code at the station first." },
-      { status: 403 }
-    );
-  }
-
+  // Intentionally open to everyone — no QR scan or physical arrival
+  // required. See app/station/[slug]/page.tsx for the admin-preview flag
+  // that keeps an admin's own testing out of the analytics.
   if (env.useMockBackend || !station.videoPath) {
     return NextResponse.json({
       videoUrl: MOCK_VIDEO_URL,

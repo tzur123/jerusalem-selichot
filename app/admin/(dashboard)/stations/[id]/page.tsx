@@ -43,7 +43,7 @@ export default async function AdminStationEditorPage({ params }: { params: Promi
             צפייה בדף התחנה והסרטון (תצוגה מקדימה)
           </Button>
           <p className="text-xs text-muted -mt-2">
-            פותח את הדף כמו שהמבקר יראה אותו, גם אם התחנה עדיין נעולה — לא נרשם כביקור בסטטיסטיקות.
+            פותח את הדף כמו שהמבקר יראה אותו — לא נרשם כביקור בסטטיסטיקות.
           </p>
         </Card>
       )}

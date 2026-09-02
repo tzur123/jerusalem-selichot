@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import type { LocatableStation } from "@/types/station";
 import type { ProgressStatus } from "@/lib/supabase/types";
+import { getStationPublicMediaUrl } from "@/lib/media/public-url";
+import { stationImage } from "@/lib/data/station-image";
 import { haversineDistanceMeters, AVERAGE_WALKING_SPEED_MPS, type LatLng } from "@/lib/geo/haversine";
 import {
   distanceToPolylineMeters,
@@ -332,19 +335,35 @@ export function Navigator({
         )}
         {selectedStation && (
           <div className="pointer-events-auto">
-            <Card className="flex items-center gap-3 py-3 px-4">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy font-stencil text-lg">
-                {selectedStation.orderIndex}
-              </span>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-base truncate">{selectedStation.name}</CardTitle>
-                {selectedStation.address && (
-                  <CardSubtitle className="text-xs truncate">{selectedStation.address}</CardSubtitle>
-                )}
+            <Card className="flex gap-4 p-4">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl ring-1 ring-gold/30">
+                <Image
+                  src={getStationPublicMediaUrl(selectedStation.heroImagePath) ?? stationImage(selectedStation.orderIndex)}
+                  alt={selectedStation.name}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+                <span className="absolute top-1 start-1 flex h-6 w-6 items-center justify-center rounded-full bg-gold text-navy font-stencil text-xs shadow-[0_2px_8px_-1px_rgba(216,181,122,0.7)]">
+                  {selectedStation.orderIndex}
+                </span>
               </div>
-              <Button href={`/navigate/${selectedStation.slug}`} size="md" className="shrink-0">
-                נווטו לשם
-              </Button>
+              <div className="flex flex-1 min-w-0 flex-col justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base truncate">{selectedStation.name}</CardTitle>
+                  {selectedStation.address && (
+                    <CardSubtitle className="text-xs truncate">{selectedStation.address}</CardSubtitle>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button href={`/station/${selectedStation.slug}`} size="md" fullWidth>
+                    צפו בסרטון
+                  </Button>
+                  <Button href={`/navigate/${selectedStation.slug}`} size="md" variant="secondary" fullWidth>
+                    נווטו לשם
+                  </Button>
+                </div>
+              </div>
             </Card>
           </div>
         )}
