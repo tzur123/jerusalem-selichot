@@ -57,7 +57,7 @@ export default async function StationPage({ params }: { params: Promise<{ slug: 
         </div>
       )}
 
-      <header className="pt-2 pb-4">
+      <header className="pt-[28px] pb-4">
         <h1 className="text-2xl font-black">{station.name}</h1>
         {station.shortDescription && <p className="text-muted text-sm mt-1">{station.shortDescription}</p>}
       </header>

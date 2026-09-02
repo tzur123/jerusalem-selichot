@@ -90,6 +90,10 @@ export function AppBackground({
               still image — cheaper, and desktop/tablet don't need the motion). */}
           {mobileVideoSrc && (
             <video
+              // Keyed on the source so React remounts a fresh <video> element
+              // on client-side route changes — swapping a <source> under an
+              // already-mounted <video> does not make the browser reload it.
+              key={mobileVideoSrc}
               autoPlay
               muted
               loop
@@ -118,6 +122,7 @@ export function AppBackground({
               phones in landscape keep the lighter still image above. */}
           {desktopVideoSrc && (
             <video
+              key={desktopVideoSrc.mp4}
               autoPlay
               muted
               loop
