@@ -5,10 +5,21 @@ import { getStationPublicMediaUrl } from "@/lib/media/public-url";
 import { stationImage } from "@/lib/data/station-image";
 import { cn } from "@/lib/utils/cn";
 
+/** Compact labels for stations whose full name is too long for the avatar row. */
+const SHORT_LABELS: Record<string, string> = {
+  "בית הכנסת החורבה": "החורבה",
+};
+
+function trackLabel(name: string): string {
+  return SHORT_LABELS[name] ?? name;
+}
+
 /**
  * Visual "trail" of the tour: a row of station avatars connected by a fill
- * line, à la a stepper. Completed stations light up with their real photo;
- * everything else stays a plain, dimmed number so it's obvious what's left.
+ * line, à la a stepper. Completed stations light up with their real photo,
+ * the current one glows with a soft "you are here" pulse, and the fill line
+ * has a slow shimmer running through it — station names always stay fully
+ * legible (no dimming), only the avatar itself signals what's left.
  */
 export function StationProgressTrack({
   stations,
@@ -44,10 +55,12 @@ export function StationProgressTrack({
       >
         <div className="absolute right-0 left-0 top-6 h-0.5 -translate-y-1/2 rounded-full bg-white/10" aria-hidden />
         <div
-          className="absolute right-0 top-6 h-0.5 -translate-y-1/2 rounded-full bg-mint transition-[width] duration-500 ease-out"
+          className="absolute right-0 top-6 h-0.5 -translate-y-1/2 overflow-hidden rounded-full bg-mint transition-[width] duration-700 ease-out"
           style={{ width: `${pct}%` }}
           aria-hidden
-        />
+        >
+          {pct > 0 && <div className="track-shimmer absolute inset-0" />}
+        </div>
 
         {ordered.map((station) => {
           const status = statusMap.get(station.id) ?? "pending";
@@ -56,42 +69,47 @@ export function StationProgressTrack({
 
           return (
             <div key={station.id} className="relative flex flex-1 flex-col items-center gap-1.5 px-0.5">
-              <div
-                className={cn(
-                  "relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 bg-navy transition-all duration-300",
-                  isCompleted
-                    ? "border-mint shadow-[0_0_14px_-2px_rgba(0,240,168,0.7)]"
-                    : isActive
-                      ? "border-gold opacity-90"
-                      : "border-white/15 opacity-40"
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
+                {isActive && (
+                  <span className="track-active-ring absolute inset-[-5px] rounded-full border-2 border-gold/70" aria-hidden />
                 )}
-              >
-                {isCompleted ? (
-                  <>
-                    <Image
-                      src={getStationPublicMediaUrl(station.heroImagePath) ?? stationImage(station.orderIndex)}
-                      alt={station.name}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                    <span className="absolute inset-0 flex items-center justify-center bg-navy/30 text-sm font-bold text-mint">
-                      ✓
+                <div
+                  className={cn(
+                    "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 bg-navy transition-all duration-500",
+                    isCompleted
+                      ? "border-mint shadow-[0_0_14px_-2px_rgba(0,240,168,0.7)] scale-100"
+                      : isActive
+                        ? "border-gold shadow-[0_0_16px_-2px_rgba(232,200,135,0.6)]"
+                        : "border-white/15 opacity-60"
+                  )}
+                >
+                  {isCompleted ? (
+                    <>
+                      <Image
+                        src={getStationPublicMediaUrl(station.heroImagePath) ?? stationImage(station.orderIndex)}
+                        alt={station.name}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                      />
+                      <span className="absolute inset-0 flex items-center justify-center bg-navy/30 text-sm font-bold text-mint">
+                        ✓
+                      </span>
+                    </>
+                  ) : (
+                    <span className={cn("text-sm font-bold", isActive ? "text-gold" : "text-white/60")}>
+                      {station.orderIndex}
                     </span>
-                  </>
-                ) : (
-                  <span className={cn("text-sm font-bold", isActive ? "text-gold" : "text-white/50")}>
-                    {station.orderIndex}
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
               <span
                 className={cn(
-                  "line-clamp-2 text-center text-[10px] leading-tight",
-                  isCompleted ? "font-semibold text-white" : isActive ? "text-gold/90" : "text-white/35"
+                  "line-clamp-2 text-center text-[10px] leading-tight text-white",
+                  isCompleted ? "font-semibold" : isActive ? "font-semibold text-gold" : "font-medium"
                 )}
               >
-                {station.name}
+                {trackLabel(station.name)}
               </span>
             </div>
           );

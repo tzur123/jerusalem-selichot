@@ -175,6 +175,37 @@
     animation: pulse-cta 2.6s ease-in-out infinite;
   }
 
+  /* Slow light sweep across the tour progress line's filled portion, so the
+     "trail" feels alive instead of a static bar. */
+  @keyframes track-shimmer {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  .track-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+    animation: track-shimmer 2.2s linear infinite;
+  }
+
+  /* "You are here" breathing halo around the current station avatar. */
+  @keyframes track-active-ring {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.18);
+      opacity: 0.15;
+    }
+  }
+  .track-active-ring {
+    animation: track-active-ring 1.8s ease-in-out infinite;
+  }
+
   .gold-glow {
     box-shadow: 0 0 0 1px rgba(232, 200, 135, 0.45), 0 8px 30px -10px rgba(232, 200, 135, 0.55);
   }
