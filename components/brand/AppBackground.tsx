@@ -35,6 +35,17 @@ const MOBILE_VIDEO_BACKGROUNDS: Partial<Record<BackgroundVariant, string>> = {
   gate: "/backgrounds/hero-mobile-video.mp4",
 };
 
+/**
+ * Same idea as {@link MOBILE_VIDEO_BACKGROUNDS}, but for desktop/tablet
+ * landscape — shown instead of the wide still photo there. Phones in
+ * landscape keep the still image; only `md:` and up gets the (heavier) clip.
+ */
+const DESKTOP_VIDEO_BACKGROUNDS: Partial<
+  Record<BackgroundVariant, { webm: string; mp4: string }>
+> = {
+  gate: { webm: "/backgrounds/hero-desktop-video.webm", mp4: "/backgrounds/hero-desktop-video.mp4" },
+};
+
 export type BackgroundVariant = keyof typeof BACKGROUNDS;
 
 /**
@@ -59,6 +70,7 @@ export function AppBackground({
   const resolvedVariant = variant ?? (isLanding ? "gate" : isStart ? "citadel" : "moonlit");
   const wideSrc = WIDE_BACKGROUNDS[resolvedVariant];
   const mobileVideoSrc = MOBILE_VIDEO_BACKGROUNDS[resolvedVariant];
+  const desktopVideoSrc = DESKTOP_VIDEO_BACKGROUNDS[resolvedVariant];
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden bg-navy a11y-hide-in-contrast" aria-hidden>
@@ -89,9 +101,10 @@ export function AppBackground({
               <source src={mobileVideoSrc} type="video/mp4" />
             </video>
           )}
-          {/* Wide 16:9 crop: desktop, and any device wider than it is tall
-              (tablet/phone landscape) — orientation media query, not a width
-              breakpoint, so it also catches landscape phones at small widths. */}
+          {/* Wide 16:9 crop: any device wider than it is tall (tablet/phone
+              landscape included) — orientation media query, not a width
+              breakpoint. Also doubles as the poster/fallback behind the
+              desktop video below once the viewport reaches `md:`. */}
           <Image
             src={wideSrc}
             alt=""
@@ -101,6 +114,22 @@ export function AppBackground({
             sizes="100vw"
             className="hidden object-cover object-top scale-105 landscape:block"
           />
+          {/* Looping clip, desktop/tablet landscape only (`md:` and up) —
+              phones in landscape keep the lighter still image above. */}
+          {desktopVideoSrc && (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster={wideSrc}
+              className="app-bg-video absolute inset-0 hidden h-full w-full object-cover object-top scale-105 md:landscape:block"
+            >
+              <source src={desktopVideoSrc.webm} type="video/webm" />
+              <source src={desktopVideoSrc.mp4} type="video/mp4" />
+            </video>
+          )}
         </>
       ) : (
         <Image

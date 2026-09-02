@@ -1,0 +1,9 @@
+Play a looping video background on desktop for the landing page
+
+- Transcoded the provided clip into a compressed WebM (VP9) + MP4 (H.264)
+  pair sized for desktop/tablet landscape, using the existing wide photo
+  as the poster/fallback
+- AppBackground now shows this clip instead of the static wide image once
+  the viewport is md: and up in landscape orientation; phones in
+  landscape keep the lighter still image, portrait keeps its own video
+- Respects the existing app-bg-video reduced-motion opt-out
