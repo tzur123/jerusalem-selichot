@@ -70,6 +70,18 @@ export function HamburgerMenu({ className }: { className?: string }) {
             )
           )}
         </nav>
+
+        <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-muted">
+          נבנה באהבה ע&quot;י{" "}
+          <a
+            href="https://stzur.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-white/80 underline underline-offset-4 hover:text-mint"
+          >
+            סטודיו צור
+          </a>
+        </p>
       </BottomSheet>
     </>
   );
