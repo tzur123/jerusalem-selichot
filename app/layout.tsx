@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
-import { mugrabi, mugrabiStencil, asimon } from "./fonts";
+import { mugrabi, mugrabiStencil, atlas } from "./fonts";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { AppBackground } from "@/components/brand/AppBackground";
@@ -119,7 +119,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${mugrabi.variable} ${mugrabiStencil.variable} ${asimon.variable} h-full`}
+      className={`${mugrabi.variable} ${mugrabiStencil.variable} ${atlas.variable} h-full`}
       suppressHydrationWarning
     >
       <head>

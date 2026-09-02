@@ -30,8 +30,8 @@
   --color-muted: var(--color-muted);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Asimon is the workhorse face: body copy, buttons, forms, nav. */
-  --font-sans: var(--font-asimon);
+  /* Atlas is the workhorse face: body copy, buttons, forms, nav. */
+  --font-sans: var(--font-atlas);
   /* Mugrabi is reserved for large headlines only. */
   --font-heading: var(--font-mugrabi);
   --font-stencil: var(--font-mugrabi-stencil);

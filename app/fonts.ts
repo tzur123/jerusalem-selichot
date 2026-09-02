@@ -36,37 +36,42 @@ export const mugrabiStencil = localFont({
 });
 
 /**
- * Asimon — the app's workhorse typeface: body copy, buttons, form fields,
- * navigation, everything that isn't a large headline.
+ * Atlas — the app's workhorse typeface: body copy, buttons, form fields,
+ * navigation, everything that isn't a large headline (those stay on Mugrabi).
  */
-export const asimon = localFont({
+export const atlas = localFont({
   src: [
     {
-      path: "../public/fonts/asimon/asimon-light-aaa.woff2",
+      path: "../public/fonts/atlas/atlas-thin-aaa.woff2",
+      weight: "100",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/atlas/atlas-light-aaa.woff2",
       weight: "300",
       style: "normal",
     },
     {
-      path: "../public/fonts/asimon/asimon-regular-aaa.woff2",
+      path: "../public/fonts/atlas/atlas-regular-aaa.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../public/fonts/asimon/asimon-medium-aaa.woff2",
+      path: "../public/fonts/atlas/atlas-medium-aaa.woff2",
       weight: "500",
       style: "normal",
     },
     {
-      path: "../public/fonts/asimon/asimon-bold-aaa.woff2",
+      path: "../public/fonts/atlas/atlas-bold-aaa.woff2",
       weight: "700",
       style: "normal",
     },
     {
-      path: "../public/fonts/asimon/asimon-black-aaa.woff2",
+      path: "../public/fonts/atlas/atlas-black-aaa.woff2",
       weight: "900",
       style: "normal",
     },
   ],
-  variable: "--font-asimon",
+  variable: "--font-atlas",
   display: "swap",
 });
