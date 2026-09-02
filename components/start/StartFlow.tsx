@@ -154,15 +154,15 @@ export function StartFlow({ stations }: { stations: Station[] }) {
           on one screen with no scroll, on every viewport height, while the
           hero photo stays visible behind the empty space above. */}
       <div className="mt-auto flex flex-col gap-5">
+        <header className="pt-2 text-center drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
+          <h1 className="text-[1.95rem] md:text-5xl font-black">מאיפה מתחילים?</h1>
+        </header>
+
         <StartPreviewMap
           stations={stations}
           onNavigate={(station) => void selectStart(station, "manual")}
           pendingId={pending}
         />
-
-        <header className="pt-2 text-center drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
-          <h1 className="text-[1.95rem] md:text-5xl font-black">מאיפה מתחילים?</h1>
-        </header>
 
         {locationState.status === "requesting" && (
           <Card className="flex items-center gap-3">

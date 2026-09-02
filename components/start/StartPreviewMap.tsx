@@ -100,7 +100,7 @@ export function StartPreviewMap({
   return (
     <div
       className="relative w-full rounded-[30px] bg-gradient-to-br from-[#f1e6c8] via-[#e3cd9a] to-[#c3a06a] p-[9px] shadow-[0_20px_50px_-18px_rgba(0,0,0,0.75)]"
-      style={{ height: "30vh" }}
+      style={{ height: "24vh" }}
     >
       {/* Aged-parchment mat, like an old map mounted in a paper frame - visible
           no matter what renders inside the window (map tiles or fallback). */}
