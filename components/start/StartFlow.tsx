@@ -149,8 +149,11 @@ export function StartFlow({ stations }: { stations: Station[] }) {
 
   return (
     <>
-      <div className="h-[6vh]" aria-hidden />
-      <div className="flex flex-col gap-6 translate-y-[15px]">
+      {/* Pushed to the bottom of the screen (mt-auto absorbs whatever space
+          is left above it) instead of a fixed top offset - keeps everything
+          on one screen with no scroll, on every viewport height, while the
+          hero photo stays visible behind the empty space above. */}
+      <div className="mt-auto flex flex-col gap-5">
         <StartPreviewMap
           stations={stations}
           onNavigate={(station) => void selectStart(station, "manual")}
