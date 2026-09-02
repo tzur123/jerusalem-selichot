@@ -17,7 +17,7 @@ import { Card, CardTitle, CardSubtitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { StationMapPicker } from "@/components/start/StationMapPicker";
+import { StartPreviewMap } from "@/components/start/StartPreviewMap";
 
 type LocationState =
   | { status: "requesting" }
@@ -62,7 +62,6 @@ export function StartFlow({ stations }: { stations: Station[] }) {
   const router = useRouter();
   const [locationState, setLocationState] = useState<LocationState>({ status: "requesting" });
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
-  const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const [nearbyPickerOpen, setNearbyPickerOpen] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
 
@@ -150,8 +149,14 @@ export function StartFlow({ stations }: { stations: Station[] }) {
 
   return (
     <>
-      <div className="h-[38vh]" aria-hidden />
+      <div className="h-[6vh]" aria-hidden />
       <div className="flex flex-col gap-6 translate-y-[15px]">
+        <StartPreviewMap
+          stations={stations}
+          onNavigate={(station) => void selectStart(station, "manual")}
+          pendingId={pending}
+        />
+
         <header className="pt-2 text-center drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
           <h1 className="text-[1.95rem] md:text-5xl font-black">מאיפה מתחילים?</h1>
         </header>
@@ -194,7 +199,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
             type="button"
             onClick={() => selectStart(defaultStation, "recommended")}
             disabled={pending !== null}
-            className="group relative flex w-full items-center justify-between gap-4 rounded-3xl bg-gradient-to-b from-mint to-[#00d494] px-6 py-5 text-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-all active:scale-[0.97] mint-glow disabled:opacity-50"
+            className="group relative flex w-full items-center justify-between gap-4 rounded-3xl bg-gradient-to-b from-mint to-[#00d494] px-6 py-1.5 text-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-all active:scale-[0.97] mint-glow disabled:opacity-50"
           >
             <span className="flex flex-col items-start gap-0.5">
               <span className="text-lg font-black leading-tight">התחל את הסיור המומלץ</span>
@@ -203,7 +208,7 @@ export function StartFlow({ stations }: { stations: Station[] }) {
             {pending === defaultStation.id ? (
               <Spinner />
             ) : (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy/10 transition-transform group-active:-translate-x-0.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy/10 transition-transform group-active:-translate-x-0.5">
                 <ArrowIcon />
               </span>
             )}
@@ -221,14 +226,6 @@ export function StartFlow({ stations }: { stations: Station[] }) {
             <ArrowIcon size={15} />
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={() => setMapPickerOpen(true)}
-          className="w-full text-center text-sm text-muted underline underline-offset-4 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]"
-        >
-          לבחירת תחנה על המפה
-        </button>
       </div>
 
       {/* Rendered outside the translated wrapper above: BottomSheet uses fixed
@@ -267,17 +264,6 @@ export function StartFlow({ stations }: { stations: Station[] }) {
           ))}
         </div>
       </BottomSheet>
-
-      <StationMapPicker
-        stations={stations}
-        open={mapPickerOpen}
-        onClose={() => setMapPickerOpen(false)}
-        pendingId={pending}
-        onSelect={(station) => {
-          setMapPickerOpen(false);
-          void selectStart(station, "manual");
-        }}
-      />
     </>
   );
 }
