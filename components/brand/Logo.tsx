@@ -13,7 +13,7 @@ export function Logo({ className, size = "md" }: { className?: string; size?: "m
           width={953}
           height={557}
           priority
-          className="h-auto w-[230px]"
+          className="h-auto w-[184px]"
         />
       </div>
     );

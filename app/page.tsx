@@ -71,7 +71,7 @@ export default async function LandingPage() {
         <Logo size="lg" />
       </header>
 
-      <section className="flex flex-col items-center text-center gap-3 mt-[220px] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
+      <section className="flex flex-col items-center text-center gap-3 mt-[340px] drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
         <h1 className="flex flex-col items-center font-heading font-bold leading-tight text-white translate-y-[10px]">
           <span className="text-4xl md:text-6xl whitespace-nowrap">5 תחנות. סיפור אחד.</span>
           <span className="text-4xl md:text-6xl text-gradient-gold whitespace-nowrap">אל שערי הסליחות</span>
