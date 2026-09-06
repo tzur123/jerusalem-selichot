@@ -45,6 +45,15 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
+function PauseIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>
+      <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
+      <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
+    </svg>
+  );
+}
+
 function MuteIcon({ muted, className }: { muted: boolean; className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
@@ -88,7 +97,6 @@ export function StationVideoPlayer({
   const milestonesRef = useRef(new Set<number>());
   const startedRef = useRef(false);
   const completedRef = useRef(alreadyCompleted);
-  const hideControlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showRealPlayer = previewMode || VIDEOS_ENABLED;
 
@@ -105,7 +113,6 @@ export function StationVideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [durationSec, setDurationSec] = useState(0);
 
@@ -127,12 +134,6 @@ export function StationVideoPlayer({
       cancelled = true;
     };
   }, [station.slug, showRealPlayer]);
-
-  useEffect(() => {
-    return () => {
-      if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
-    };
-  }, []);
 
   /**
    * Marks the station complete (once) and resolves with where to go next.
@@ -175,14 +176,6 @@ export function StationVideoPlayer({
     completionPromiseRef.current = promise;
     return promise;
   }, [station.id, previewMode]);
-
-  function resetControlsTimer() {
-    setControlsVisible(true);
-    if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
-    hideControlsTimer.current = setTimeout(() => {
-      if (videoRef.current && !videoRef.current.paused) setControlsVisible(false);
-    }, 3000);
-  }
 
   function handleTimeUpdate() {
     const video = videoRef.current;
@@ -227,10 +220,8 @@ export function StationVideoPlayer({
   function handleInitialPlay() {
     setHasStarted(true);
     setIsFullscreen(true);
-    setControlsVisible(true);
     const video = videoRef.current;
     if (video) void video.play();
-    resetControlsTimer();
   }
 
   function togglePlayPause() {
@@ -238,7 +229,6 @@ export function StationVideoPlayer({
     if (!video) return;
     if (video.paused) void video.play();
     else video.pause();
-    resetControlsTimer();
   }
 
   function toggleMute() {
@@ -246,7 +236,6 @@ export function StationVideoPlayer({
     if (!video) return;
     video.muted = !video.muted;
     setIsMuted(video.muted);
-    resetControlsTimer();
   }
 
   function handleSeek(e: ReactPointerEvent<HTMLDivElement>) {
@@ -256,7 +245,6 @@ export function StationVideoPlayer({
     const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
     video.currentTime = ratio * video.duration;
     setCurrentTime(video.currentTime);
-    resetControlsTimer();
   }
 
   async function handleContinueClick() {
@@ -325,28 +313,17 @@ export function StationVideoPlayer({
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        className={cn(
-          "bg-black",
-          isFullscreen
-            ? "fixed inset-0 z-[999] flex items-center justify-center"
-            : "relative aspect-video w-full overflow-hidden rounded-3xl ring-1 ring-gold/20"
-        )}
-      >
+      <div className={cn("bg-black", isFullscreen ? "fixed inset-0 z-[999]" : "relative aspect-video w-full overflow-hidden rounded-3xl ring-1 ring-gold/20")}>
         {/* The video element itself never unmounts across fullscreen toggles —
             only its wrapper's size/transform changes — so playback position
-            and buffered data are preserved seamlessly. */}
-        <div
-          className={cn(isFullscreen ? "relative" : "absolute inset-0")}
-          style={
-            isFullscreen
-              ? { width: "100vh", height: "100vw", transform: "rotate(90deg)" }
-              : undefined
-          }
-        >
+            and buffered data are preserved seamlessly. Positioned via
+            top/left + translate (not flex-centering) so it's immune to any
+            ancestor layout quirks, and uses dvh/dvw so mobile browser
+            chrome can't leave gaps around the edges. */}
+        <div className={cn(isFullscreen ? "video-rotate-fill" : "absolute inset-0")}>
           <video
             ref={videoRef}
-            className={cn("h-full w-full bg-black", isFullscreen ? "object-contain" : "object-cover")}
+            className="h-full w-full bg-black object-cover"
             playsInline
             preload="metadata"
             poster={data.posterUrl ?? undefined}
@@ -386,24 +363,17 @@ export function StationVideoPlayer({
         )}
 
         {/* Fullscreen custom control chrome — deliberately NOT rotated, so it
-            reads upright no matter how the visitor is holding the phone. */}
+            reads upright no matter how the visitor is holding the phone.
+            Always visible (no auto-hide) so play/pause/close are never in
+            doubt. */}
         {isFullscreen && (
-          <div
-            dir="ltr"
-            className="absolute inset-0 flex flex-col justify-between p-4"
-            onPointerDown={() => resetControlsTimer()}
-          >
-            <div
-              className={cn(
-                "flex justify-end transition-opacity duration-300",
-                controlsVisible ? "opacity-100" : "opacity-0"
-              )}
-            >
+          <div dir="ltr" className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4">
+            <div className="pointer-events-auto flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsFullscreen(false)}
                 aria-label="סגירת מסך מלא"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/60 text-white/90 backdrop-blur-md transition-colors hover:text-white"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-lg backdrop-blur-md transition-colors hover:text-white"
               >
                 <CloseIcon className="h-5 w-5" />
               </button>
@@ -413,24 +383,19 @@ export function StationVideoPlayer({
               type="button"
               onClick={togglePlayPause}
               aria-label={isPlaying ? "השהיה" : "הפעלה"}
-              className={cn(
-                "flex-1 transition-opacity duration-300",
-                controlsVisible || !isPlaying ? "opacity-100" : "opacity-0"
-              )}
+              className="pointer-events-auto flex flex-1 items-center justify-center"
             >
-              {!isPlaying && (
-                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md">
-                  <PlayIcon className="h-7 w-7 translate-x-[1px] text-white" />
-                </span>
-              )}
+              <span
+                className={cn(
+                  "flex h-16 w-16 items-center justify-center rounded-full bg-navy/55 shadow-lg backdrop-blur-md transition-opacity",
+                  isPlaying ? "opacity-0" : "opacity-100"
+                )}
+              >
+                <PlayIcon className="h-7 w-7 translate-x-[1px] text-white" />
+              </span>
             </button>
 
-            <div
-              className={cn(
-                "flex flex-col gap-2 transition-opacity duration-300",
-                controlsVisible ? "opacity-100" : "opacity-0"
-              )}
-            >
+            <div className="pointer-events-auto flex flex-col gap-2">
               <div
                 className="group flex h-4 w-full cursor-pointer items-center"
                 onPointerDown={handleSeek}
@@ -453,10 +418,15 @@ export function StationVideoPlayer({
               </div>
 
               <div className="flex items-center justify-between text-xs font-semibold text-white/85">
-                <span className="tabular-nums">
-                  {formatClock(currentTime)} / {formatClock(durationSec)}
-                </span>
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={togglePlayPause}
+                    aria-label={isPlaying ? "השהיה" : "הפעלה"}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
+                  >
+                    {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4 translate-x-[1px]" />}
+                  </button>
                   <button
                     type="button"
                     onClick={toggleMute}
@@ -465,17 +435,20 @@ export function StationVideoPlayer({
                   >
                     <MuteIcon muted={isMuted} className="h-4 w-4" />
                   </button>
-                  {!previewMode && (
-                    <button
-                      type="button"
-                      onClick={() => void handleContinueClick()}
-                      disabled={advancing}
-                      className="rounded-full bg-gradient-to-b from-mint to-[#00d494] px-4 py-2 text-xs font-bold text-navy disabled:opacity-60"
-                    >
-                      {advancing ? <Spinner /> : "לתחנה הבאה ←"}
-                    </button>
-                  )}
+                  <span className="tabular-nums">
+                    {formatClock(currentTime)} / {formatClock(durationSec)}
+                  </span>
                 </div>
+                {!previewMode && (
+                  <button
+                    type="button"
+                    onClick={() => void handleContinueClick()}
+                    disabled={advancing}
+                    className="rounded-full bg-gradient-to-b from-mint to-[#00d494] px-4 py-2 text-xs font-bold text-navy disabled:opacity-60"
+                  >
+                    {advancing ? <Spinner /> : "לתחנה הבאה ←"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

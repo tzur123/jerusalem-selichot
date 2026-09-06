@@ -177,7 +177,29 @@
 
   /* Slow light sweep across the tour progress line's filled portion, so the
      "trail" feels alive instead of a static bar. */
-  @keyframes track-shimmer {
+  /* Rotates a landscape video to fill the entire physical screen while the
+   phone stays in portrait — width/height are swapped (100vh x 100vw) then
+   the box is rotated 90° around its own center, positioned via top/left +
+   translate rather than flex centering so it's immune to any parent layout
+   quirks. `dvh`/`dvw` (dynamic viewport units) override the `vh`/`vw`
+   fallback wherever supported, since mobile browser chrome makes plain
+   `100vh` unreliable for a truly edge-to-edge fullscreen box. */
+.video-rotate-fill {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+@supports (height: 100dvh) {
+  .video-rotate-fill {
+    width: 100dvh;
+    height: 100dvw;
+  }
+}
+
+@keyframes track-shimmer {
     0% {
       transform: translateX(100%);
     }
