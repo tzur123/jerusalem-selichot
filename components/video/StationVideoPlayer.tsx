@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils/cn";
  * normally) — admins previewing from /admin still see the real video.
  * Flip to `true` once the videos are approved for launch.
  */
-const VIDEOS_ENABLED = false;
+const VIDEOS_ENABLED = true;
 
 type VideoData = { videoUrl: string; posterUrl: string | null; captionsUrl: string | null };
 

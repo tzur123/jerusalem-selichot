@@ -53,11 +53,26 @@ const TARGET_BYTES = 44 * 1024 * 1024;
 const AUDIO_KBPS = 96;
 
 const JOBS: { file: string; slug: string; stationId: string; label: string }[] = [
-  { file: "הרב קוק - רוחבי.mp4", slug: "beit-harav-kook", stationId: "00000000-0000-4000-8000-000000000001", label: "בית הרב קוק" },
-  { file: "שער יפו - רוחבי.mp4", slug: "shaar-yafo", stationId: "00000000-0000-4000-8000-000000000003", label: "שער יפו" },
-  { file: "חורבה סופי.mp4", slug: "beit-knesset-hachurva", stationId: "00000000-0000-4000-8000-000000000002", label: "בית הכנסת החורבה" },
-  { file: "בית אורות - רוחבי.mp4", slug: "beit-orot", stationId: "00000000-0000-4000-8000-000000000004", label: "בית אורות" },
-  { file: "הכותל - רוחבי.mp4", slug: "hakotel-hamaaravi", stationId: "00000000-0000-4000-8000-000000000005", label: "הכותל המערבי" },
+  {
+    file: "סיור סליחות בית הרב קוק -אחרי צבע וסאונד_FIX2.mp4",
+    slug: "beit-harav-kook",
+    stationId: "00000000-0000-4000-8000-000000000001",
+    label: "בית הרב קוק",
+  },
+  { file: "שער יפו רוחבי_MASTER_NEW.mp4", slug: "shaar-yafo", stationId: "00000000-0000-4000-8000-000000000003", label: "שער יפו" },
+  {
+    file: "החורבה רוחבי_,MASTER_NEW.mp4",
+    slug: "beit-knesset-hachurva",
+    stationId: "00000000-0000-4000-8000-000000000002",
+    label: "בית הכנסת החורבה",
+  },
+  { file: "בית אורות V6_MIRIT_1.mp4", slug: "beit-orot", stationId: "00000000-0000-4000-8000-000000000004", label: "בית אורות" },
+  {
+    file: "ירידה לכותל__MASTER_FINAL.mp4",
+    slug: "hakotel-hamaaravi",
+    stationId: "00000000-0000-4000-8000-000000000005",
+    label: "הכותל המערבי",
+  },
 ];
 
 function ffprobeDuration(inputPath: string): number {
@@ -126,6 +141,12 @@ async function uploadAndAttach(outputPath: string, stationId: string, slug: stri
   const size = statSync(outputPath).size;
   console.log(`[${slug}] encoded size: ${(size / 1024 / 1024).toFixed(1)}MB — uploading...`);
 
+  // Grab the previous object key first so we can clean it up once the new
+  // one is safely attached (keeps the bucket from accumulating superseded
+  // cuts of the same station's video across re-uploads).
+  const { data: before } = await supabase.from("stations").select("video_path").eq("id", stationId).single();
+  const previousPath = before?.video_path as string | null | undefined;
+
   const objectPath = `${stationId}/video-${Date.now()}-${slug}.mp4`;
   const buffer = readFileSync(outputPath);
 
@@ -145,6 +166,12 @@ async function uploadAndAttach(outputPath: string, stationId: string, slug: stri
   }
 
   console.log(`[${slug}] done — video_path = ${objectPath}`);
+
+  if (previousPath && previousPath !== objectPath) {
+    const { error: rmErr } = await supabase.storage.from("station-videos").remove([previousPath]);
+    if (rmErr) console.warn(`[${slug}] could not remove previous file (${previousPath}):`, rmErr.message);
+    else console.log(`[${slug}] removed previous file: ${previousPath}`);
+  }
 }
 
 async function main() {
