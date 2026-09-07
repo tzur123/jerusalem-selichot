@@ -500,7 +500,12 @@ export function StationVideoPlayer({
         <div className={cn(isFullscreen && shouldRotate ? "video-rotate-fill" : "absolute inset-0")}>
           <video
             ref={videoRef}
-            className={cn("h-full w-full bg-black", isFullscreen && shouldRotate ? "object-cover" : "object-contain")}
+            // Always object-contain (never object-cover): the whole 16:9
+            // frame stays visible with letterboxing rather than cropping
+            // the top/bottom off — true in the compact card, in plain
+            // desktop fullscreen, and in the rotated mobile fullscreen too
+            // (there the letterbox bars land on the left/right once rotated).
+            className="h-full w-full bg-black object-contain"
             playsInline
             preload="metadata"
             poster={data.posterUrl ?? undefined}
