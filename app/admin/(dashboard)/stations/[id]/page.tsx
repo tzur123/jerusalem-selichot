@@ -45,6 +45,18 @@ export default async function AdminStationEditorPage({ params }: { params: Promi
           <p className="text-xs text-muted -mt-2">
             פותח את הדף כמו שהמבקר יראה אותו — לא נרשם כביקור בסטטיסטיקות.
           </p>
+          <Button
+            href={`/navigate/${station.slug}?preview=arrived`}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="secondary"
+            fullWidth
+          >
+            תצוגה מקדימה של מסך &ldquo;הגעתם! סריקת QR&rdquo;
+          </Button>
+          <p className="text-xs text-muted -mt-2">
+            קישור לצפייה מרחוק במסך שקופץ למבקר כשהוא מגיע לתחנה — בלי צורך להיות בפועל במקום, ובלי לרשום שום דבר בסטטיסטיקות.
+          </p>
         </Card>
       )}
 

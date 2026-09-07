@@ -46,11 +46,16 @@ export function Navigator({
   station,
   allStations,
   progressByStationId,
+  forcePreviewArrival = false,
 }: {
   station: LocatableStation;
   /** Every published, locatable station — always shown as pins on the map. */
   allStations: LocatableStation[];
   progressByStationId?: Map<string, ProgressStatus>;
+  /** Admin-only remote preview: skip real GPS and jump straight to the
+   *  "arrived — scan QR" screen, without writing anything to this visitor's
+   *  actual tour progress or analytics. */
+  forcePreviewArrival?: boolean;
 }) {
   const router = useRouter();
   const destination = useMemo<LatLng>(
@@ -180,6 +185,24 @@ export function Navigator({
   );
 
   const handleStart = useCallback(async () => {
+    if (forcePreviewArrival) {
+      // Admin preview link — no real location request at all, just render
+      // the map centered on the station and pop the arrival screen instantly.
+      setUserPosition({
+        lat: destination.lat,
+        lng: destination.lng,
+        accuracy: 0,
+        heading: null,
+        speed: null,
+        timestamp: Date.now(),
+      });
+      setPhase("active");
+      arrivedRef.current = true;
+      arrivalReportedRef.current = true; // never write real progress for a preview
+      setArrived(true);
+      return;
+    }
+
     setPhase("locating");
     await requestWakeLock();
 
@@ -202,7 +225,7 @@ export function Navigator({
       setLocationErrorMessage(err instanceof Error ? err.message : "שגיאה באיתור מיקום");
       setPhase("location-error");
     }
-  }, [fetchRoute, handlePositionUpdate, station.id]);
+  }, [fetchRoute, handlePositionUpdate, station.id, forcePreviewArrival, destination]);
 
   // Navigation starts the moment this screen mounts — location permission was
   // already requested back on /start, so there's no need to make the visitor

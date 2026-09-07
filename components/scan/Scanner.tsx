@@ -74,7 +74,11 @@ export function Scanner({ initialError }: { initialError?: string }) {
 
         await scanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 240, height: 240 } },
+          // `aspectRatio: 1` forces the camera feed itself into a square —
+          // without it html5-qrcode sizes the video by the camera's native
+          // (usually 4:3/16:9) ratio, which made the scanning area a tall
+          // rectangle even though the outer card below is styled square.
+          { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1 },
           (decodedText) => {
             void scanner.pause(true);
             void validateToken(extractToken(decodedText));
