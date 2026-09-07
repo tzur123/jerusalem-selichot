@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Station } from "@/types/station";
 import { trackEventClient } from "@/lib/analytics/track-client";
@@ -79,6 +79,122 @@ function ClockIcon({ className }: { className?: string }) {
       <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
       <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+
+function ExpandIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+      <path
+        d="M9 4H5a1 1 0 0 0-1 1v4M15 4h4a1 1 0 0 1 1 1v4M9 20H5a1 1 0 0 1-1-1v-4M15 20h4a1 1 0 0 0 1-1v-4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Shared control chrome for both the compact in-page player and the rotated
+ * fullscreen player — top-right action (expand or close), a big center
+ * tap-to-toggle zone, and a bottom bar with seek/play/mute/time. Rendering
+ * this in both modes (instead of only in fullscreen) means closing
+ * fullscreen never leaves the visitor stuck looking at a bare, uncontrollable
+ * video.
+ */
+function PlayerControls({
+  isPlaying,
+  isMuted,
+  currentTime,
+  durationSec,
+  progressPct,
+  onTogglePlay,
+  onToggleMute,
+  onSeek,
+  topRightAction,
+  continueSlot,
+}: {
+  isPlaying: boolean;
+  isMuted: boolean;
+  currentTime: number;
+  durationSec: number;
+  progressPct: number;
+  onTogglePlay: () => void;
+  onToggleMute: () => void;
+  onSeek: (e: ReactPointerEvent<HTMLDivElement>) => void;
+  topRightAction: ReactNode;
+  continueSlot?: ReactNode;
+}) {
+  return (
+    <div dir="ltr" className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4">
+      <div className="pointer-events-auto flex justify-end">{topRightAction}</div>
+
+      <button
+        type="button"
+        onClick={onTogglePlay}
+        aria-label={isPlaying ? "השהיה" : "הפעלה"}
+        className="pointer-events-auto flex flex-1 items-center justify-center"
+      >
+        <span
+          className={cn(
+            "flex h-16 w-16 items-center justify-center rounded-full bg-navy/55 shadow-lg backdrop-blur-md transition-opacity",
+            isPlaying ? "opacity-0" : "opacity-100"
+          )}
+        >
+          <PlayIcon className="h-7 w-7 translate-x-[1px] text-white" />
+        </span>
+      </button>
+
+      <div className="pointer-events-auto flex flex-col gap-2">
+        <div
+          className="group flex h-4 w-full cursor-pointer items-center"
+          onPointerDown={onSeek}
+          role="slider"
+          aria-label="התקדמות הסרטון"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progressPct)}
+        >
+          <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/20">
+            <div
+              className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-gold to-mint"
+              style={{ width: `${progressPct}%` }}
+            />
+            <div
+              className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_3px_rgba(0,0,0,0.25)] transition-transform group-active:scale-125"
+              style={{ left: `calc(${progressPct}% - 6px)` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-xs font-semibold text-white/85">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onTogglePlay}
+              aria-label={isPlaying ? "השהיה" : "הפעלה"}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
+            >
+              {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4 translate-x-[1px]" />}
+            </button>
+            <button
+              type="button"
+              onClick={onToggleMute}
+              aria-label={isMuted ? "ביטול השתקה" : "השתקה"}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
+            >
+              <MuteIcon muted={isMuted} className="h-4 w-4" />
+            </button>
+            <span className="tabular-nums">
+              {formatClock(currentTime)} / {formatClock(durationSec)}
+            </span>
+          </div>
+          {continueSlot}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -256,6 +372,12 @@ export function StationVideoPlayer({
     enterFullscreenMode();
   }
 
+  /** Re-enter rotated fullscreen from the compact player (after a previous close) without restarting playback. */
+  function handleExpandClick() {
+    setIsFullscreen(true);
+    enterFullscreenMode();
+  }
+
   function togglePlayPause() {
     const video = videoRef.current;
     if (!video) return;
@@ -362,7 +484,7 @@ export function StationVideoPlayer({
         <div className={cn(isFullscreen ? "video-rotate-fill" : "absolute inset-0")}>
           <video
             ref={videoRef}
-            className="h-full w-full bg-black object-cover"
+            className={cn("h-full w-full bg-black", isFullscreen ? "object-cover" : "object-contain")}
             playsInline
             preload="metadata"
             poster={data.posterUrl ?? undefined}
@@ -377,92 +499,55 @@ export function StationVideoPlayer({
             הדפדפן שלכם אינו תומך בהצגת וידאו.
           </video>
 
-          {isFullscreen && (
-            <div dir="ltr" className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4">
-              <div className="pointer-events-auto flex justify-end">
-                <button
-                  type="button"
-                  onClick={exitFullscreenMode}
-                  aria-label="סגירת מסך מלא"
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-lg backdrop-blur-md transition-colors hover:text-white"
-                >
-                  <CloseIcon className="h-5 w-5" />
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={togglePlayPause}
-                aria-label={isPlaying ? "השהיה" : "הפעלה"}
-                className="pointer-events-auto flex flex-1 items-center justify-center"
-              >
-                <span
-                  className={cn(
-                    "flex h-16 w-16 items-center justify-center rounded-full bg-navy/55 shadow-lg backdrop-blur-md transition-opacity",
-                    isPlaying ? "opacity-0" : "opacity-100"
-                  )}
-                >
-                  <PlayIcon className="h-7 w-7 translate-x-[1px] text-white" />
-                </span>
-              </button>
-
-              <div className="pointer-events-auto flex flex-col gap-2">
-                <div
-                  className="group flex h-4 w-full cursor-pointer items-center"
-                  onPointerDown={handleSeek}
-                  role="slider"
-                  aria-label="התקדמות הסרטון"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(progressPct)}
-                >
-                  <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/20">
-                    <div
-                      className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-gold to-mint"
-                      style={{ width: `${progressPct}%` }}
-                    />
-                    <div
-                      className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_3px_rgba(0,0,0,0.25)] transition-transform group-active:scale-125"
-                      style={{ left: `calc(${progressPct}% - 6px)` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-semibold text-white/85">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={togglePlayPause}
-                      aria-label={isPlaying ? "השהיה" : "הפעלה"}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
-                    >
-                      {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4 translate-x-[1px]" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={toggleMute}
-                      aria-label={isMuted ? "ביטול השתקה" : "השתקה"}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
-                    >
-                      <MuteIcon muted={isMuted} className="h-4 w-4" />
-                    </button>
-                    <span className="tabular-nums">
-                      {formatClock(currentTime)} / {formatClock(durationSec)}
-                    </span>
-                  </div>
-                  {!previewMode && (
-                    <button
-                      type="button"
-                      onClick={() => void handleContinueClick()}
-                      disabled={advancing}
-                      className="rounded-full bg-gradient-to-b from-mint to-[#00d494] px-4 py-2 text-xs font-bold text-navy disabled:opacity-60"
-                    >
-                      {advancing ? <Spinner /> : "לתחנה הבאה ←"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+          {/* Controls stay mounted in both compact and fullscreen states —
+              only the top-right action (expand vs. close) and the
+              "continue" slot differ — so closing fullscreen never leaves a
+              bare, uncontrollable video behind. */}
+          {hasStarted && (
+            <PlayerControls
+              isPlaying={isPlaying}
+              isMuted={isMuted}
+              currentTime={currentTime}
+              durationSec={durationSec}
+              progressPct={progressPct}
+              onTogglePlay={togglePlayPause}
+              onToggleMute={toggleMute}
+              onSeek={handleSeek}
+              topRightAction={
+                isFullscreen ? (
+                  <button
+                    type="button"
+                    onClick={exitFullscreenMode}
+                    aria-label="סגירת מסך מלא"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-lg backdrop-blur-md transition-colors hover:text-white"
+                  >
+                    <CloseIcon className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleExpandClick}
+                    aria-label="הגדלה למסך מלא"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-lg backdrop-blur-md transition-colors hover:text-white"
+                  >
+                    <ExpandIcon className="h-4 w-4" />
+                  </button>
+                )
+              }
+              continueSlot={
+                isFullscreen &&
+                !previewMode && (
+                  <button
+                    type="button"
+                    onClick={() => void handleContinueClick()}
+                    disabled={advancing}
+                    className="rounded-full bg-gradient-to-b from-mint to-[#00d494] px-4 py-2 text-xs font-bold text-navy disabled:opacity-60"
+                  >
+                    {advancing ? <Spinner /> : "לתחנה הבאה ←"}
+                  </button>
+                )
+              }
+            />
           )}
         </div>
 

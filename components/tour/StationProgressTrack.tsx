@@ -79,6 +79,10 @@ export function StationProgressTrack({
           const status = statusMap.get(station.id) ?? "pending";
           const isCompleted = status === "completed";
           const isActive = status === "arrived" || status === "unlocked" || status === "watching";
+          // "Already visited" = reached this station at all (not just fully
+          // watched) — show its real photo instead of a bare number the
+          // moment it's arrived/unlocked/watching, not only once completed.
+          const isVisited = isCompleted || isActive;
 
           return (
             <div key={station.id} className="relative flex flex-1 flex-col items-center gap-1.5 px-0.5">
@@ -96,7 +100,7 @@ export function StationProgressTrack({
                         : "border-white/15 opacity-60"
                   )}
                 >
-                  {isCompleted ? (
+                  {isVisited ? (
                     <>
                       <Image
                         src={getStationPublicMediaUrl(station.heroImagePath) ?? stationImage(station.orderIndex)}
@@ -105,14 +109,14 @@ export function StationProgressTrack({
                         sizes="48px"
                         className="object-cover"
                       />
-                      <span className="absolute inset-0 flex items-center justify-center bg-navy/30 text-sm font-bold text-mint">
-                        ✓
-                      </span>
+                      {isCompleted && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-navy/30 text-sm font-bold text-mint">
+                          ✓
+                        </span>
+                      )}
                     </>
                   ) : (
-                    <span className={cn("text-sm font-bold", isActive ? "text-gold" : "text-white/60")}>
-                      {station.orderIndex}
-                    </span>
+                    <span className="text-sm font-bold text-white/60">{station.orderIndex}</span>
                   )}
                 </div>
               </div>
