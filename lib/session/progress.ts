@@ -28,6 +28,21 @@ export type CreateSessionOptions = {
 };
 
 /**
+ * An in-progress (never completed) session older than this is treated as
+ * abandoned. A visitor who starts a tour, wanders off for days and comes
+ * back later gets a completely fresh session — new timer, new progress —
+ * instead of resuming an ancient, half-finished one that would otherwise
+ * show a multi-day elapsed time. Completed sessions are never expired
+ * (kept as-is for the completion screen, QR previews, and analytics).
+ */
+const STALE_SESSION_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+function isSessionStale(startedAt: string, completedAt: string | null): boolean {
+  if (completedAt) return false;
+  return Date.now() - new Date(startedAt).getTime() > STALE_SESSION_MS;
+}
+
+/**
  * Returns the current session bound to the request cookie, creating one
  * (and issuing a new cookie) if none exists. Only callable from a Server
  * Action or Route Handler — cookie writes are not allowed during a plain
@@ -129,10 +144,12 @@ async function getOrCreateMockSession(opts: CreateSessionOptions): Promise<TourS
     const hash = await hashSessionKey(key);
     const sessionId = mockStore.sessionKeyIndex.get(hash);
     const existing = sessionId ? mockStore.sessions.get(sessionId) : undefined;
-    if (existing) {
+    if (existing && !isSessionStale(existing.startedAt, existing.completedAt)) {
       existing.lastSeenAt = new Date().toISOString();
       return existing;
     }
+    // Stale (or missing) session — fall through and start a fresh one below,
+    // issuing a brand-new cookie so the abandoned session is never resumed.
   }
 
   const newKey = await issueNewSessionKey();
@@ -160,6 +177,7 @@ async function getMockSessionProgress(): Promise<SessionWithProgress | null> {
   if (!sessionId) return null;
   const session = mockStore.sessions.get(sessionId);
   if (!session) return null;
+  if (isSessionStale(session.startedAt, session.completedAt)) return null;
   const progressMap = mockStore.progress.get(sessionId);
   return { session, progress: progressMap ? Array.from(progressMap.values()) : [] };
 }
@@ -201,13 +219,15 @@ async function getOrCreateSupabaseSession(opts: CreateSessionOptions): Promise<T
       .eq("session_key_hash", hash)
       .maybeSingle();
 
-    if (existing) {
+    if (existing && !isSessionStale(existing.started_at, existing.completed_at)) {
       await supabase
         .from("tour_sessions")
         .update({ last_seen_at: new Date().toISOString() })
         .eq("id", existing.id);
       return tourSessionRowToSession({ ...existing, last_seen_at: new Date().toISOString() });
     }
+    // Stale (or missing) session — fall through and start a fresh one below,
+    // issuing a brand-new cookie so the abandoned session is never resumed.
   }
 
   const newKey = await issueNewSessionKey();
@@ -248,6 +268,7 @@ async function getSupabaseSessionProgress(): Promise<SessionWithProgress | null>
     .maybeSingle();
 
   if (!session) return null;
+  if (isSessionStale(session.started_at, session.completed_at)) return null;
 
   const { data: rows, error } = await supabase
     .from("session_station_progress")
