@@ -228,6 +228,13 @@ export function StationVideoPlayer({
   // Custom player chrome state.
   const [hasStarted, setHasStarted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Only phones/tablets (coarse pointer, no mouse) get the rotated-to-
+  // landscape fullscreen trick — on desktop the screen is already
+  // landscape, so fullscreen there should just be plain, upright fullscreen.
+  // Computed fresh each time fullscreen is entered (real user gesture, so
+  // `window` is always available), not on mount, to avoid any SSR/hydration
+  // mismatch.
+  const [shouldRotate, setShouldRotate] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -364,17 +371,25 @@ export function StationVideoPlayer({
     }
   }
 
+  /** True on phones/tablets (coarse pointer, no fine mouse) — the audience the rotate-to-landscape fullscreen trick is meant for. */
+  function isTouchPrimaryDevice(): boolean {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(pointer: coarse)").matches;
+  }
+
   function handleInitialPlay() {
     setHasStarted(true);
     setIsFullscreen(true);
+    setShouldRotate(isTouchPrimaryDevice());
     const video = videoRef.current;
     if (video) void video.play();
     enterFullscreenMode();
   }
 
-  /** Re-enter rotated fullscreen from the compact player (after a previous close) without restarting playback. */
+  /** Re-enter fullscreen from the compact player (after a previous close) without restarting playback. */
   function handleExpandClick() {
     setIsFullscreen(true);
+    setShouldRotate(isTouchPrimaryDevice());
     enterFullscreenMode();
   }
 
@@ -473,18 +488,19 @@ export function StationVideoPlayer({
       >
         {/* The video element itself never unmounts across fullscreen toggles —
             only its wrapper's size/transform changes — so playback position
-            and buffered data are preserved seamlessly. Positioned via
-            top/left + translate (not flex-centering) so it's immune to any
-            ancestor layout quirks, and uses dvh/dvw so mobile browser
-            chrome can't leave gaps around the edges. The controls live
-            *inside* this same rotated box (not as an upright sibling) so
-            they turn together with the video — once the visitor physically
-            turns their phone to match, everything reads right-side up as
-            one landscape unit. */}
-        <div className={cn(isFullscreen ? "video-rotate-fill" : "absolute inset-0")}>
+            and buffered data are preserved seamlessly. On phones/tablets
+            (shouldRotate) it's positioned via top/left + translate + a 90°
+            rotation (not flex-centering) so it's immune to any ancestor
+            layout quirks, and uses dvh/dvw so mobile browser chrome can't
+            leave gaps around the edges. On desktop (mouse/trackpad) it's
+            just a plain, upright absolute-fill box — the screen is already
+            landscape, so there's nothing to rotate. The controls live
+            *inside* this same box (not as an upright sibling) so on mobile
+            they turn together with the video as one landscape unit. */}
+        <div className={cn(isFullscreen && shouldRotate ? "video-rotate-fill" : "absolute inset-0")}>
           <video
             ref={videoRef}
-            className={cn("h-full w-full bg-black", isFullscreen ? "object-cover" : "object-contain")}
+            className={cn("h-full w-full bg-black", isFullscreen && shouldRotate ? "object-cover" : "object-contain")}
             playsInline
             preload="metadata"
             poster={data.posterUrl ?? undefined}
