@@ -94,6 +94,7 @@ export function StationVideoPlayer({
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const milestonesRef = useRef(new Set<number>());
   const startedRef = useRef(false);
   const completedRef = useRef(alreadyCompleted);
@@ -134,6 +135,18 @@ export function StationVideoPlayer({
       cancelled = true;
     };
   }, [station.slug, showRealPlayer]);
+
+  // If the visitor exits real (OS-level) fullscreen some other way — the
+  // Android back gesture, a browser chrome button, etc. — drop our overlay
+  // too, so the UI never gets stuck showing the rotated player without the
+  // browser chrome actually being hidden.
+  useEffect(() => {
+    function onFullscreenChange() {
+      if (!document.fullscreenElement) setIsFullscreen(false);
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
 
   /**
    * Marks the station complete (once) and resolves with where to go next.
@@ -214,7 +227,25 @@ export function StationVideoPlayer({
 
   function handleEnded() {
     void completeStation();
+    exitFullscreenMode();
+  }
+
+  /** Best-effort real (OS-level) fullscreen — hides the browser's address
+   *  bar/nav chrome on top of our own rotated overlay. Silently no-ops
+   *  where unsupported (notably older iOS Safari); the CSS rotation trick
+   *  still works fine without it, just with the browser chrome visible. */
+  function enterFullscreenMode() {
+    const el = containerRef.current as (HTMLDivElement & { webkitRequestFullscreen?: () => Promise<void> }) | null;
+    const request = el?.requestFullscreen?.bind(el) ?? el?.webkitRequestFullscreen?.bind(el);
+    request?.()?.catch(() => {});
+  }
+
+  function exitFullscreenMode() {
     setIsFullscreen(false);
+    const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> };
+    if (document.fullscreenElement) {
+      (doc.exitFullscreen?.() ?? doc.webkitExitFullscreen?.())?.catch(() => {});
+    }
   }
 
   function handleInitialPlay() {
@@ -222,6 +253,7 @@ export function StationVideoPlayer({
     setIsFullscreen(true);
     const video = videoRef.current;
     if (video) void video.play();
+    enterFullscreenMode();
   }
 
   function togglePlayPause() {
@@ -313,13 +345,20 @@ export function StationVideoPlayer({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={cn("bg-black", isFullscreen ? "fixed inset-0 z-[999]" : "relative aspect-video w-full overflow-hidden rounded-3xl ring-1 ring-gold/20")}>
+      <div
+        ref={containerRef}
+        className={cn("bg-black", isFullscreen ? "fixed inset-0 z-[999]" : "relative aspect-video w-full overflow-hidden rounded-3xl ring-1 ring-gold/20")}
+      >
         {/* The video element itself never unmounts across fullscreen toggles —
             only its wrapper's size/transform changes — so playback position
             and buffered data are preserved seamlessly. Positioned via
             top/left + translate (not flex-centering) so it's immune to any
             ancestor layout quirks, and uses dvh/dvw so mobile browser
-            chrome can't leave gaps around the edges. */}
+            chrome can't leave gaps around the edges. The controls live
+            *inside* this same rotated box (not as an upright sibling) so
+            they turn together with the video — once the visitor physically
+            turns their phone to match, everything reads right-side up as
+            one landscape unit. */}
         <div className={cn(isFullscreen ? "video-rotate-fill" : "absolute inset-0")}>
           <video
             ref={videoRef}
@@ -337,6 +376,94 @@ export function StationVideoPlayer({
             {data.captionsUrl && <track kind="captions" srcLang="he" label="עברית" src={data.captionsUrl} default />}
             הדפדפן שלכם אינו תומך בהצגת וידאו.
           </video>
+
+          {isFullscreen && (
+            <div dir="ltr" className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4">
+              <div className="pointer-events-auto flex justify-end">
+                <button
+                  type="button"
+                  onClick={exitFullscreenMode}
+                  aria-label="סגירת מסך מלא"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-lg backdrop-blur-md transition-colors hover:text-white"
+                >
+                  <CloseIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                aria-label={isPlaying ? "השהיה" : "הפעלה"}
+                className="pointer-events-auto flex flex-1 items-center justify-center"
+              >
+                <span
+                  className={cn(
+                    "flex h-16 w-16 items-center justify-center rounded-full bg-navy/55 shadow-lg backdrop-blur-md transition-opacity",
+                    isPlaying ? "opacity-0" : "opacity-100"
+                  )}
+                >
+                  <PlayIcon className="h-7 w-7 translate-x-[1px] text-white" />
+                </span>
+              </button>
+
+              <div className="pointer-events-auto flex flex-col gap-2">
+                <div
+                  className="group flex h-4 w-full cursor-pointer items-center"
+                  onPointerDown={handleSeek}
+                  role="slider"
+                  aria-label="התקדמות הסרטון"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(progressPct)}
+                >
+                  <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/20">
+                    <div
+                      className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-gold to-mint"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                    <div
+                      className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_3px_rgba(0,0,0,0.25)] transition-transform group-active:scale-125"
+                      style={{ left: `calc(${progressPct}% - 6px)` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-semibold text-white/85">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={togglePlayPause}
+                      aria-label={isPlaying ? "השהיה" : "הפעלה"}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
+                    >
+                      {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4 translate-x-[1px]" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleMute}
+                      aria-label={isMuted ? "ביטול השתקה" : "השתקה"}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
+                    >
+                      <MuteIcon muted={isMuted} className="h-4 w-4" />
+                    </button>
+                    <span className="tabular-nums">
+                      {formatClock(currentTime)} / {formatClock(durationSec)}
+                    </span>
+                  </div>
+                  {!previewMode && (
+                    <button
+                      type="button"
+                      onClick={() => void handleContinueClick()}
+                      disabled={advancing}
+                      className="rounded-full bg-gradient-to-b from-mint to-[#00d494] px-4 py-2 text-xs font-bold text-navy disabled:opacity-60"
+                    >
+                      {advancing ? <Spinner /> : "לתחנה הבאה ←"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Idle poster state — big glass/gold play button, shown until the
@@ -360,98 +487,6 @@ export function StationVideoPlayer({
               לצפייה בסרטון
             </span>
           </button>
-        )}
-
-        {/* Fullscreen custom control chrome — deliberately NOT rotated, so it
-            reads upright no matter how the visitor is holding the phone.
-            Always visible (no auto-hide) so play/pause/close are never in
-            doubt. */}
-        {isFullscreen && (
-          <div dir="ltr" className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4">
-            <div className="pointer-events-auto flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsFullscreen(false)}
-                aria-label="סגירת מסך מלא"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/70 text-white/90 shadow-lg backdrop-blur-md transition-colors hover:text-white"
-              >
-                <CloseIcon className="h-5 w-5" />
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={togglePlayPause}
-              aria-label={isPlaying ? "השהיה" : "הפעלה"}
-              className="pointer-events-auto flex flex-1 items-center justify-center"
-            >
-              <span
-                className={cn(
-                  "flex h-16 w-16 items-center justify-center rounded-full bg-navy/55 shadow-lg backdrop-blur-md transition-opacity",
-                  isPlaying ? "opacity-0" : "opacity-100"
-                )}
-              >
-                <PlayIcon className="h-7 w-7 translate-x-[1px] text-white" />
-              </span>
-            </button>
-
-            <div className="pointer-events-auto flex flex-col gap-2">
-              <div
-                className="group flex h-4 w-full cursor-pointer items-center"
-                onPointerDown={handleSeek}
-                role="slider"
-                aria-label="התקדמות הסרטון"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(progressPct)}
-              >
-                <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/20">
-                  <div
-                    className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-gold to-mint"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                  <div
-                    className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_3px_rgba(0,0,0,0.25)] transition-transform group-active:scale-125"
-                    style={{ left: `calc(${progressPct}% - 6px)` }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs font-semibold text-white/85">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={togglePlayPause}
-                    aria-label={isPlaying ? "השהיה" : "הפעלה"}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
-                  >
-                    {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4 translate-x-[1px]" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={toggleMute}
-                    aria-label={isMuted ? "ביטול השתקה" : "השתקה"}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-navy/55 backdrop-blur-md"
-                  >
-                    <MuteIcon muted={isMuted} className="h-4 w-4" />
-                  </button>
-                  <span className="tabular-nums">
-                    {formatClock(currentTime)} / {formatClock(durationSec)}
-                  </span>
-                </div>
-                {!previewMode && (
-                  <button
-                    type="button"
-                    onClick={() => void handleContinueClick()}
-                    disabled={advancing}
-                    className="rounded-full bg-gradient-to-b from-mint to-[#00d494] px-4 py-2 text-xs font-bold text-navy disabled:opacity-60"
-                  >
-                    {advancing ? <Spinner /> : "לתחנה הבאה ←"}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
         )}
       </div>
 
